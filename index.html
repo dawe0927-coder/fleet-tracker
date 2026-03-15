@@ -788,15 +788,15 @@ function sendPosition() {
     headers: {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Prefer': 'resolution=merge-duplicates'
+      'Authorization': 'Bearer ' + SUPABASE_KEY
     },
     body: JSON.stringify({
       vehicle_id: vid,
-      latitude: lastLat,
-      longitude: lastLon,
-      speed: lastSpd || 0,
-      updated_at: new Date().toISOString()
+      lat: lastLat,
+      lng: lastLon,
+      speed: Math.round(lastSpd || 0),
+      heading: 0,
+      accuracy: 0
     })
   }).then(function(res) {
     if (res.ok) {
@@ -1110,16 +1110,21 @@ function updateDashClock() {
 }
 
 function fetchVehicles() {
-  var since = new Date(Date.now() - 120000).toISOString();
+  var since = new Date(Date.now() - 300000).toISOString();
   fetch(
-    SUPABASE_URL + '/rest/v1/' + TABLE + '?updated_at=gte.' + since + '&order=vehicle_id',
+    SUPABASE_URL + '/rest/v1/' + TABLE + '?select=vehicle_id,lat,lng,speed,heading,accuracy,created_at&created_at=gte.' + since + '&order=created_at.desc&limit=200',
     { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
   ).then(function(res) {
     if (!res.ok) return;
     return res.json();
   }).then(function(data) {
     if (!data) return;
-    data.forEach(function(v) { processVehiclePosition(v); });
+    // Dedupe: take latest per vehicle_id
+    var latest = {};
+    data.forEach(function(r) {
+      if (!latest[r.vehicle_id]) latest[r.vehicle_id] = r;
+    });
+    Object.values(latest).forEach(function(v) { processVehiclePosition(v); });
     renderVehicles();
     updateVehicleMarkers();
   }).catch(function(e) { console.error('Fetch error:', e); });
@@ -1187,10 +1192,10 @@ function processVehiclePosition(v) {
   var vid = v.vehicle_id;
   vehicles[vid] = {
     id: vid,
-    lat: v.latitude,
-    lon: v.longitude,
+    lat: v.lat,
+    lon: v.lng,
     speed: v.speed || 0,
-    lastSeen: new Date(v.updated_at).getTime()
+    lastSeen: new Date(v.created_at).getTime()
   };
   document.getElementById('vLastRecv').textContent =
     new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -1198,7 +1203,7 @@ function processVehiclePosition(v) {
   if (!geofence.dump) return;
   if (!cycleStates[vid]) return;
   var cs = cycleStates[vid];
-  var inDump = isInsideGeofence(v.latitude, v.longitude, geofence.dump);
+  var inDump = isInsideGeofence(v.lat, v.lng, geofence.dump);
   switch (cs.state) {
     case 'hauling':
       if (inDump) { cs.state = 'dumping'; cs.ts.dumpStart = Date.now(); }
