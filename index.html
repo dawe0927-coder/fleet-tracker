@@ -2,457 +2,1222 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FleetTracker</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FleetTracker v2</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{--bg:#0a0e17;--bg2:#111827;--card:#1a2235;--border:#2a3550;--text:#e8ecf4;--text2:#8899b4;--muted:#556680;--cyan:#06b6d4;--blue:#3b82f6;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+:root {
+  --navy: #0f1a2e;
+  --navy-light: #1a2942;
+  --navy-mid: #253750;
+  --orange: #e87c3e;
+  --orange-dark: #c96530;
+  --green: #2ecc71;
+  --green-dark: #1a7a42;
+  --red: #e74c3c;
+  --yellow: #f1c40f;
+  --blue: #3498db;
+  --cyan: #00bcd4;
+  --white: #f0f2f5;
+  --gray: #8899aa;
+  --gray-dark: #5a6a7a;
+  --bg: #0a1220;
+  --card: #111d2e;
+  --border: #1e3048;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+.hidden { display: none !important; }
 
-#modesel{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:16px;padding:20px}
-#modesel h1{font-size:26px;font-weight:900}#modesel h1 span{color:var(--cyan)}
-#modesel p{color:var(--text2);font-size:13px;text-align:center;max-width:340px}
-.mbtn{width:100%;max-width:300px;padding:16px;border-radius:12px;border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:left;transition:all .2s;color:var(--text)}
-.mbtn:active{border-color:var(--cyan);transform:scale(.98)}
-.mbtn-i{font-size:24px;margin-bottom:4px}.mbtn-t{font-size:14px;font-weight:700;margin-bottom:2px}.mbtn-d{font-size:10px;color:var(--text2)}
+/* ===== ROLE SELECT ===== */
+#roleSelect {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 100vh; padding: 20px; gap: 24px;
+}
+#roleSelect h1 {
+  font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+#roleSelect p { color: var(--gray); font-size: 14px; }
+.role-cards { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.role-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 28px 24px; width: 200px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+}
+.role-card:hover { border-color: var(--orange); transform: translateY(-2px); }
+.role-card .icon { font-size: 36px; margin-bottom: 12px; }
+.role-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.role-card p { font-size: 12px; color: var(--gray); line-height: 1.5; }
 
-/* Sender */
-#sender{display:none;flex-direction:column;height:100vh}
-.sh{padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.sh h2{font-size:14px;font-weight:700}
-.ss{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600}
-.sd{width:7px;height:7px;border-radius:50%}.sd.on{background:var(--green);animation:p 2s infinite}.sd.off{background:var(--red)}
-@keyframes p{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 5px rgba(16,185,129,0)}}
-.sm{flex:1}#smap{width:100%;height:100%}
-.sp{padding:12px 14px;background:var(--bg2);border-top:1px solid var(--border)}
-.sc{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap}
-.sch{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:600;cursor:pointer;color:var(--text2)}
-.sch.on{background:var(--cyan);border-color:var(--cyan);color:#fff}
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
-.si{background:var(--card);border-radius:5px;padding:5px 8px;border:1px solid var(--border)}
-.sl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-.sv{font-family:monospace;font-size:14px;font-weight:700;margin-top:1px}
-.sb{width:100%;padding:12px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;color:#fff}
-.sb.go{background:var(--green)}.sb.stop{background:var(--red)}
-.smsg{font-size:10px;color:var(--amber);margin-top:6px;text-align:center;display:none}
+/* ===== GPS SENDER ===== */
+#gpsSender {
+  padding: 20px; max-width: 420px; margin: 0 auto;
+}
+.sender-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+}
+.sender-header h2 { font-size: 18px; font-weight: 700; }
+.back-btn {
+  background: var(--navy-mid); border: none; color: var(--white);
+  width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+}
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.status-badge.off { background: rgba(231,76,60,0.15); color: var(--red); }
+.status-badge.on { background: rgba(46,204,113,0.15); color: var(--green); }
+.status-badge .dot {
+  width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+}
+.status-badge.on .dot { animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-/* Dashboard */
-#dash{display:none;height:100vh;flex-direction:column}
-.dh{display:flex;align-items:center;justify-content:space-between;padding:0 14px;height:42px;background:var(--bg2);border-bottom:1px solid var(--border)}
-.dl{font-size:13px;font-weight:900}.dl span{color:var(--cyan)}
-.dli{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--green)}
-.dck{font-family:monospace;font-size:11px;font-weight:600}
-.db{display:flex;flex:1;overflow:hidden}
+.sender-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0;
+}
+.sender-stat {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+}
+.sender-stat label { font-size: 11px; color: var(--gray); display: block; margin-bottom: 4px; }
+.sender-stat .val { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
-/* Sidebar with tabs */
-.ds{width:320px;min-width:320px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
-.dtabs{display:flex;border-bottom:1px solid var(--border)}
-.dtab{flex:1;padding:7px;text-align:center;font-size:10px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .15s}
-.dtab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
-.dtpanel{flex:1;overflow-y:auto;display:none}
-.dtpanel.on{display:flex;flex-direction:column}
-.dtpanel::-webkit-scrollbar{width:3px}.dtpanel::-webkit-scrollbar-thumb{background:var(--border)}
+.vehicle-select {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  color: var(--white); padding: 12px 14px; border-radius: 10px;
+  font-size: 15px; margin-bottom: 16px; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238899aa'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.vehicle-select option { background: var(--navy); }
 
-/* Stats */
-.dst{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:6px 8px;border-bottom:1px solid var(--border)}
-.ds1{background:var(--card);border-radius:5px;padding:5px 7px;border:1px solid var(--border)}
-.ds1l{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-.ds1v{font-family:monospace;font-size:16px;font-weight:700}
-.ds1u{font-size:8px;color:var(--text2)}
+.btn-send {
+  width: 100%; padding: 16px; border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.btn-send.start { background: var(--green); color: #fff; }
+.btn-send.start:hover { background: var(--green-dark); }
+.btn-send.stop { background: var(--red); color: #fff; }
 
-.dlh{padding:5px 8px;border-bottom:1px solid var(--border);font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text2)}
-.dvl{flex:1;overflow-y:auto;padding:2px}
-.dv{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:5px;cursor:pointer;border:1px solid transparent;margin-bottom:1px;font-size:10px}
-.dv:hover{background:var(--card)}.dv.sel{background:var(--card);border-color:var(--cyan)}
-.dvi{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px}
-.dvn{font-weight:600;font-size:10px}.dvtg{font-size:7px;font-weight:700;padding:1px 3px;border-radius:2px}
-.dvd{font-size:8px;color:var(--muted)}.dvr{margin-left:auto;text-align:right}
-.dvt{font-family:monospace;font-size:8px;color:var(--text2)}
+/* ===== OPERATOR MODE ===== */
+#operatorMode {
+  padding: 16px; max-width: 500px; margin: 0 auto; min-height: 100vh;
+}
+.op-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+}
+.op-header h2 { font-size: 18px; font-weight: 700; flex: 1; }
+.op-count-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.op-count-box .label { font-size: 13px; color: var(--gray); }
+.op-count-box .count { font-size: 28px; font-weight: 800; color: var(--orange); font-variant-numeric: tabular-nums; }
+.op-id-row {
+  display: flex; gap: 8px; margin-bottom: 16px; align-items: center;
+}
+.op-id-row label { font-size: 13px; color: var(--gray); white-space: nowrap; }
+.op-id-input {
+  flex: 1; background: var(--card); border: 1px solid var(--border);
+  color: var(--white); padding: 10px 12px; border-radius: 8px;
+  font-size: 15px;
+}
+.op-id-input:focus { outline: none; border-color: var(--orange); }
+.operator-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+}
+.op-btn {
+  background: var(--navy-light); border: 2px solid var(--border);
+  color: var(--white); border-radius: 12px; padding: 0;
+  min-height: 72px; font-size: 20px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  -webkit-user-select: none; user-select: none;
+}
+.op-btn:active { transform: scale(0.95); }
+.op-btn .btn-label { font-size: 12px; font-weight: 400; color: var(--gray); margin-top: 2px; display: block; }
+.op-btn.sending {
+  background: var(--navy-mid); border-color: var(--gray-dark);
+  color: var(--gray-dark); pointer-events: none;
+}
+.op-btn.sent {
+  background: rgba(46,204,113,0.2); border-color: var(--green);
+  color: var(--green);
+}
+.op-btn.sent .btn-label { color: var(--green); }
 
-/* Cycle panel */
-.cyc-summary{padding:8px;border-bottom:1px solid var(--border)}
-.cyc-title{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
-.cyc-bars{display:flex;flex-direction:column;gap:3px}
-.cyc-row{display:flex;align-items:center;gap:6px;font-size:9px}
-.cyc-lbl{width:48px;text-align:right;color:var(--text2);font-weight:500}
-.cyc-track{flex:1;height:14px;background:var(--bg);border-radius:3px;overflow:hidden}
-.cyc-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:4px;font-family:monospace;font-size:8px;font-weight:600;color:#fff;transition:width .5s}
+/* ===== DASHBOARD ===== */
+#dashboard { height: 100vh; display: flex; flex-direction: column; }
+.dash-header {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  background: var(--navy); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.dash-header h2 { font-size: 16px; font-weight: 700; flex: 1; }
+.dash-header .live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  animation: pulse 1.5s infinite;
+}
+.dash-header .time { font-variant-numeric: tabular-nums; color: var(--gray); font-size: 13px; }
 
-.cyc-table{padding:6px 8px}
-.cyc-table table{width:100%;border-collapse:collapse;font-size:9px}
-.cyc-table th{text-align:left;padding:3px 4px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600}
-.cyc-table td{padding:3px 4px;border-bottom:1px solid rgba(42,53,80,.3);font-family:monospace}
-.cyc-table tr:hover{background:var(--card)}
+/* Tab bar */
+.tab-bar {
+  display: flex; background: var(--navy); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tab-btn {
+  flex: 1; padding: 10px 4px; text-align: center; font-size: 12px;
+  font-weight: 600; color: var(--gray); background: none; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
 
-.csv-btn{margin:6px 8px;padding:7px;border-radius:6px;border:1px solid var(--cyan);background:transparent;color:var(--cyan);font-size:10px;font-weight:700;cursor:pointer;text-align:center}
-.csv-btn:active{background:var(--cyan);color:#fff}
+/* Tab content */
+.tab-content { flex: 1; overflow-y: auto; position: relative; }
+.tab-panel { padding: 16px; }
+.tab-panel.hidden { display: none !important; }
 
-/* Map */
-.dmw{flex:1;position:relative}
-#dmap{width:100%;height:100%}
-.leaflet-container{background:var(--bg)!important}
-.ddt{position:absolute;top:8px;right:8px;z-index:999;width:200px;background:rgba(17,24,39,.94);backdrop-filter:blur(10px);border-radius:7px;border:1px solid var(--border);display:none}
-.ddt.vis{display:block}
-.ddth{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid var(--border)}
-.ddtt{font-size:12px;font-weight:700}
-.ddtx{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer}
-.ddtb{padding:6px 8px}
-.ddtr{display:flex;justify-content:space-between;padding:2px 0;font-size:9px}
-.ddtrl{color:var(--muted)}.ddtrv{font-family:monospace;font-weight:600}
+/* Map panel */
+#tabMap { padding: 0; }
+#mapContainer { width: 100%; height: 100%; min-height: 400px; }
 
-/* Geofence setup */
-.geo-bar{position:absolute;top:8px;left:8px;z-index:999;background:rgba(17,24,39,.92);backdrop-filter:blur(10px);border-radius:7px;border:1px solid var(--border);padding:8px 10px;max-width:240px}
-.geo-title{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-.geo-item{display:flex;align-items:center;gap:5px;font-size:10px;margin-bottom:3px}
-.geo-dot{width:10px;height:10px;border-radius:50%;border:2px solid}
-.geo-name{font-weight:600}.geo-coord{font-family:monospace;font-size:8px;color:var(--text2)}
-.geo-hint{font-size:8px;color:var(--amber);margin-top:4px}
-.geo-setbtn{padding:4px 8px;border-radius:4px;border:1px solid;font-size:9px;font-weight:600;cursor:pointer;background:transparent}
+/* Map custom labels */
+.truck-label {
+  background: rgba(15,26,46,0.85); color: #f0f2f5; padding: 2px 6px;
+  border-radius: 4px; font-size: 11px; font-weight: 700; white-space: nowrap;
+  border: 1px solid rgba(232,124,62,0.5); font-family: -apple-system, sans-serif;
+}
+.geo-label {
+  background: rgba(15,26,46,0.85); padding: 3px 8px;
+  border-radius: 4px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  font-family: -apple-system, sans-serif;
+}
+.geo-label-load { color: #f1c40f; border: 1px solid rgba(241,196,15,0.5); }
+.geo-label-dump { color: #e74c3c; border: 1px solid rgba(231,76,60,0.5); }
 
-.nodata{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:998;background:rgba(17,24,39,.9);padding:18px 24px;border-radius:10px;border:1px solid var(--border);text-align:center}
-.nodata h3{font-size:14px;margin-bottom:4px}.nodata p{font-size:10px;color:var(--text2);max-width:240px}
+/* Vehicle list */
+.vehicle-count { font-size: 13px; color: var(--gray); margin-bottom: 12px; }
+.vehicle-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; margin-bottom: 10px;
+}
+.vehicle-item .vi-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.vehicle-item .vi-name { font-weight: 700; font-size: 15px; }
+.vehicle-item .vi-state {
+  font-size: 11px; font-weight: 600; padding: 3px 8px;
+  border-radius: 12px;
+}
+.state-idle { background: rgba(52,152,219,0.15); color: var(--blue); }
+.state-hauling { background: rgba(232,124,62,0.15); color: var(--orange); }
+.state-dumping { background: rgba(231,76,60,0.15); color: var(--red); }
+.state-returning { background: rgba(0,188,212,0.15); color: var(--cyan); }
+.state-offline { background: rgba(90,106,122,0.15); color: var(--gray-dark); }
 
-.tl{background:rgba(10,14,23,.85);padding:1px 3px;border-radius:2px;font-family:monospace;font-size:7px;font-weight:600;color:#fff;white-space:nowrap}
-.td{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:9px;font-weight:800;color:#fff}
-.gl{background:rgba(17,24,39,.85);border:1px solid;border-radius:4px;padding:2px 5px;font-size:8px;font-weight:600;white-space:nowrap}
+.vehicle-item .vi-info {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;
+  font-size: 12px; color: var(--gray);
+}
+.vehicle-item .vi-info span { font-variant-numeric: tabular-nums; }
 
-@media(max-width:768px){.ds{width:240px;min-width:240px}}
+/* Geofence settings */
+.geo-section { margin-bottom: 20px; }
+.geo-section h3 {
+  font-size: 14px; font-weight: 700; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.geo-section h3 .badge {
+  font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 10px;
+}
+.badge-load { background: rgba(241,196,15,0.2); color: var(--yellow); }
+.badge-dump { background: rgba(231,76,60,0.2); color: var(--red); }
+
+.geo-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.geo-form label {
+  font-size: 11px; color: var(--gray); display: block; margin-bottom: 3px;
+}
+.geo-form input {
+  width: 100%; background: var(--navy-mid); border: 1px solid var(--border);
+  color: var(--white); padding: 10px; border-radius: 8px; font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.geo-form input:focus { outline: none; border-color: var(--orange); }
+.geo-form .full { grid-column: 1 / -1; }
+.btn-geo {
+  padding: 10px 20px; border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.btn-geo-save { background: var(--orange); color: #fff; margin-top: 10px; }
+.btn-geo-save:hover { background: var(--orange-dark); }
+.btn-geo-clear { background: var(--navy-mid); color: var(--gray); margin-top: 10px; margin-left: 8px; }
+
+.geo-status {
+  margin-top: 12px; padding: 10px; background: var(--navy-mid);
+  border-radius: 8px; font-size: 12px; color: var(--gray);
+}
+.geo-status.active { border-left: 3px solid var(--green); color: var(--green); }
+
+/* Cycle history */
+.history-controls {
+  display: flex; gap: 8px; margin-bottom: 12px; align-items: center;
+}
+.btn-csv {
+  background: var(--green); color: #fff; border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.btn-csv:hover { background: var(--green-dark); }
+.btn-clear-history {
+  background: var(--navy-mid); color: var(--gray); border: none;
+  border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer;
+}
+.history-count { flex: 1; font-size: 13px; color: var(--gray); text-align: right; }
+
+.history-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.history-table th {
+  background: var(--navy-mid); color: var(--gray); padding: 8px 6px;
+  text-align: left; font-weight: 600; position: sticky; top: 0;
+  border-bottom: 1px solid var(--border);
+}
+.history-table td {
+  padding: 8px 6px; border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.history-table tr:hover td { background: var(--navy-mid); }
+
+.empty-state {
+  text-align: center; padding: 40px 20px; color: var(--gray);
+}
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 13px; line-height: 1.6; }
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .geo-form { grid-template-columns: 1fr; }
+  .history-table { font-size: 11px; }
+  .history-table th, .history-table td { padding: 6px 4px; }
+  .operator-grid { grid-template-columns: repeat(3, 1fr); }
+  .op-btn { min-height: 64px; font-size: 18px; }
+}
 </style>
 </head>
 <body>
 
-<script>
-const SUPABASE_URL='https://jfzegcpfjvumxnsiumcu.supabase.co';
-const SUPABASE_KEY='sb_publishable_fUesb_VIV5otkh_XctrCdQ_Ppgpw0q4';
-const API=SUPABASE_URL+'/rest/v1';
-const H={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'};
-const HR={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
-</script>
-
-<div id="modesel">
-  <h1><span>Fleet</span>Tracker</h1>
+<!-- ===== ROLE SELECT ===== -->
+<div id="roleSelect">
+  <h1>FleetTracker v2</h1>
   <p>デバイスの役割を選択</p>
-  <button class="mbtn" onclick="openSender()"><div class="mbtn-i">📱</div><div class="mbtn-t">GPS送信モード</div><div class="mbtn-d">iPhoneのSafariで開いてください</div></button>
-  <button class="mbtn" onclick="openDash()"><div class="mbtn-i">🖥️</div><div class="mbtn-t">ダッシュボード</div><div class="mbtn-d">全車両の位置＋サイクルタイム自動計測</div></button>
+  <div class="role-cards">
+    <div class="role-card" onclick="showGPS()">
+      <div class="icon">📱</div>
+      <h3>GPS送信モード</h3>
+      <p>iPhoneのSafariで位置を送信</p>
+    </div>
+    <div class="role-card" onclick="showDashboard()">
+      <div class="icon">🖥️</div>
+      <h3>ダッシュボード</h3>
+      <p>地図・サイクルタイム計測・履歴</p>
+    </div>
+    <div class="role-card" onclick="showOperator()">
+      <div class="icon">🏗️</div>
+      <h3>オペレーター</h3>
+      <p>積込完了をダンプ車番で送信</p>
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--gray-dark);margin-top:12px;">Supabase Tokyo | v2.1 Operator + Map</p>
 </div>
 
-<!-- SENDER (unchanged) -->
-<div id="sender">
-  <div class="sh"><h2>📱 GPS送信</h2><div class="ss"><div class="sd off" id="sdot"></div><span id="stxt">停止中</span></div></div>
-  <div class="sm"><div id="smap"></div></div>
-  <div class="sp">
-    <div style="font-size:9px;font-weight:600;color:var(--muted);margin-bottom:4px">車両選択</div>
-    <div class="sc" id="schips"></div>
-    <div class="sg">
-      <div class="si"><div class="sl">緯度</div><div class="sv" id="slat">--</div></div>
-      <div class="si"><div class="sl">経度</div><div class="sv" id="slng">--</div></div>
-      <div class="si"><div class="sl">速度</div><div class="sv" id="sspd">--</div></div>
-      <div class="si"><div class="sl">送信回数</div><div class="sv" id="scnt">0</div></div>
-    </div>
-    <button class="sb go" id="sbtn" onclick="toggleGPS()">GPS送信を開始</button>
-    <div class="smsg" id="smsg"></div>
+<!-- ===== GPS SENDER ===== -->
+<div id="gpsSender" class="hidden">
+  <div class="sender-header">
+    <button class="back-btn" onclick="showRole()">←</button>
+    <h2>📱 GPS送信</h2>
+    <span id="gpsStatus" class="status-badge off"><span class="dot"></span>停止中</span>
   </div>
+  <select id="vehicleId" class="vehicle-select">
+    <option value="dump-01">ダンプ01</option>
+    <option value="dump-02">ダンプ02</option>
+    <option value="dump-03">ダンプ03</option>
+    <option value="dump-04">ダンプ04</option>
+    <option value="dump-05">ダンプ05</option>
+    <option value="dump-06">ダンプ06</option>
+    <option value="dump-07">ダンプ07</option>
+    <option value="dump-08">ダンプ08</option>
+    <option value="dump-09">ダンプ09</option>
+    <option value="dump-10">ダンプ10</option>
+    <option value="dump-11">ダンプ11</option>
+    <option value="dump-12">ダンプ12</option>
+    <option value="dump-13">ダンプ13</option>
+    <option value="dump-14">ダンプ14</option>
+    <option value="dump-15">ダンプ15</option>
+    <option value="dump-16">ダンプ16</option>
+    <option value="dump-17">ダンプ17</option>
+    <option value="dump-18">ダンプ18</option>
+    <option value="dump-19">ダンプ19</option>
+    <option value="dump-20">ダンプ20</option>
+  </select>
+  <div class="sender-grid">
+    <div class="sender-stat"><label>緯度</label><div class="val" id="sLat">--</div></div>
+    <div class="sender-stat"><label>経度</label><div class="val" id="sLon">--</div></div>
+    <div class="sender-stat"><label>速度 (km/h)</label><div class="val" id="sSpd">--</div></div>
+    <div class="sender-stat"><label>送信回数</label><div class="val" id="sCnt">0</div></div>
+  </div>
+  <button id="btnGps" class="btn-send start" onclick="toggleGPS()">GPS送信を開始</button>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dash">
-  <div class="dh">
-    <div style="display:flex;align-items:center;gap:8px"><div class="dl"><span>Fleet</span>Tracker</div><div class="dli"><div class="sd on"></div>LIVE</div></div>
-    <div style="display:flex;align-items:center;gap:8px"><div style="font-size:9px;color:var(--text2)">3秒更新</div><div class="dck" id="dclock">--:--:--</div></div>
+<!-- ===== OPERATOR MODE ===== -->
+<div id="operatorMode" class="hidden">
+  <div class="op-header">
+    <button class="back-btn" onclick="showRole()">←</button>
+    <h2>🏗️ 積込完了送信</h2>
   </div>
-  <div class="db">
-    <div class="ds">
-      <div class="dtabs">
-        <div class="dtab on" onclick="switchTab(0)">車両</div>
-        <div class="dtab" onclick="switchTab(1)">サイクル</div>
-      </div>
+  <div class="op-id-row">
+    <label>オペレーターID:</label>
+    <input type="text" id="operatorId" class="op-id-input" placeholder="例: OP-01" maxlength="10">
+  </div>
+  <div class="op-count-box">
+    <span class="label">本日の積込回数</span>
+    <span class="count" id="opTotalCount">0</span>
+  </div>
+  <div class="operator-grid" id="opGrid"></div>
+</div>
 
-      <!-- Tab 0: Vehicles -->
-      <div class="dtpanel on" id="tab0">
-        <div class="dst">
-          <div class="ds1"><div class="ds1l">接続台数</div><div class="ds1v" style="color:var(--green)" id="da">0<span class="ds1u">台</span></div></div>
-          <div class="ds1"><div class="ds1l">本日サイクル</div><div class="ds1v" style="color:var(--cyan)" id="dtc">0<span class="ds1u">回</span></div></div>
-          <div class="ds1"><div class="ds1l">平均サイクル</div><div class="ds1v" style="color:var(--amber)" id="dac">--<span class="ds1u">分</span></div></div>
-          <div class="ds1"><div class="ds1l">最終受信</div><div class="ds1v" style="color:var(--purple)" id="dlt">--:--</div></div>
-        </div>
-        <div class="dlh">車両一覧 <span id="dvc" style="float:right;font-weight:400">0台</span></div>
-        <div class="dvl" id="dlist"></div>
-      </div>
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard" class="hidden">
+  <div class="dash-header">
+    <button class="back-btn" onclick="showRole()">←</button>
+    <span class="live-dot"></span>
+    <h2>FleetTracker</h2>
+    <span class="time" id="dashTime">--:--:--</span>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="tabMap" onclick="switchTab(this)">🗺 地図</button>
+    <button class="tab-btn" data-tab="tabVehicles" onclick="switchTab(this)">🚛 車両</button>
+    <button class="tab-btn" data-tab="tabGeofence" onclick="switchTab(this)">📍 ジオフェンス</button>
+    <button class="tab-btn" data-tab="tabHistory" onclick="switchTab(this)">📊 履歴</button>
+  </div>
+  <div class="tab-content">
 
-      <!-- Tab 1: Cycles -->
-      <div class="dtpanel" id="tab1">
-        <div class="cyc-summary">
-          <div class="cyc-title">平均サイクル内訳</div>
-          <div class="cyc-bars">
-            <div class="cyc-row"><div class="cyc-lbl">積込</div><div class="cyc-track"><div class="cyc-fill" id="cf-load" style="width:0;background:var(--amber)">--</div></div></div>
-            <div class="cyc-row"><div class="cyc-lbl">実車</div><div class="cyc-track"><div class="cyc-fill" id="cf-haul" style="width:0;background:var(--red)">--</div></div></div>
-            <div class="cyc-row"><div class="cyc-lbl">荷降</div><div class="cyc-track"><div class="cyc-fill" id="cf-dump" style="width:0;background:var(--purple)">--</div></div></div>
-            <div class="cyc-row"><div class="cyc-lbl">空車</div><div class="cyc-track"><div class="cyc-fill" id="cf-ret" style="width:0;background:var(--blue)">--</div></div></div>
-          </div>
+    <!-- Map Tab -->
+    <div id="tabMap" class="tab-panel">
+      <div id="mapContainer"></div>
+    </div>
+
+    <!-- Vehicle Tab -->
+    <div id="tabVehicles" class="tab-panel hidden">
+      <div class="vehicle-count">接続台数: <strong id="vCount">0</strong>台 ｜ 最終受信: <span id="vLastRecv">--:--</span></div>
+      <div id="vehicleList">
+        <div class="empty-state">
+          <div class="icon">📡</div>
+          <p>データ待機中<br>スマホでGPS送信を開始してください</p>
         </div>
-        <div class="dlh">サイクル履歴</div>
-        <div class="cyc-table"><table><thead><tr><th>車両</th><th>開始</th><th>積込</th><th>実車</th><th>荷降</th><th>空車</th><th>合計</th></tr></thead><tbody id="cyc-body"></tbody></table></div>
-        <div class="csv-btn" onclick="exportCSV()">📥 CSV出力</div>
       </div>
     </div>
 
-    <div class="dmw">
-      <div id="dmap"></div>
-      <div class="geo-bar" id="geobar">
-        <div class="geo-title">ジオフェンス設定</div>
-        <div class="geo-item">
-          <div class="geo-dot" style="background:rgba(245,158,11,.3);border-color:var(--amber)"></div>
-          <div><div class="geo-name">積込場</div><div class="geo-coord" id="geo-load-coord">地図をクリックして設定</div></div>
-          <div class="geo-setbtn" style="border-color:var(--amber);color:var(--amber)" id="geo-load-btn" onclick="setGeoMode('load')">設定</div>
+    <!-- Geofence Tab -->
+    <div id="tabGeofence" class="tab-panel hidden">
+      <div class="geo-section">
+        <h3>積込エリア <span class="badge badge-load">LOADING</span></h3>
+        <p style="font-size:12px;color:var(--gray);margin-bottom:10px;">地図にバックホウアイコンを表示する位置（サイクル検知には使用しません）</p>
+        <div class="geo-form">
+          <div><label>緯度</label><input type="number" step="0.000001" id="geoLoadLat" placeholder="34.XXXXXX"></div>
+          <div><label>経度</label><input type="number" step="0.000001" id="geoLoadLon" placeholder="132.XXXXXX"></div>
         </div>
-        <div class="geo-item">
-          <div class="geo-dot" style="background:rgba(139,92,246,.3);border-color:var(--purple)"></div>
-          <div><div class="geo-name">荷降場</div><div class="geo-coord" id="geo-dump-coord">地図をクリックして設定</div></div>
-          <div class="geo-setbtn" style="border-color:var(--purple);color:var(--purple)" id="geo-dump-btn" onclick="setGeoMode('dump')">設定</div>
-        </div>
-        <div class="geo-hint" id="geo-hint" style="display:none">🎯 地図上をクリックして位置を設定</div>
       </div>
-      <div class="ddt" id="ddet"><div class="ddth"><div class="ddtt" id="ddt-t">-</div><button class="ddtx" onclick="closeDet()">×</button></div><div class="ddtb" id="ddt-b"></div></div>
-      <div class="nodata" id="nodata"><h3>📡 データ待機中</h3><p>スマホのSafariでGPS送信を開始するとここに表示されます</p></div>
+      <div class="geo-section">
+        <h3>荷降エリア <span class="badge badge-dump">DUMPING</span></h3>
+        <p style="font-size:12px;color:var(--gray);margin-bottom:10px;">サイクル検知に使用（ジオフェンス半径を設定）</p>
+        <div class="geo-form">
+          <div><label>緯度</label><input type="number" step="0.000001" id="geoDumpLat" placeholder="34.XXXXXX"></div>
+          <div><label>経度</label><input type="number" step="0.000001" id="geoDumpLon" placeholder="132.XXXXXX"></div>
+          <div class="full"><label>半径 (m)</label><input type="number" id="geoDumpRadius" value="50" placeholder="50"></div>
+        </div>
+      </div>
+      <button class="btn-geo btn-geo-save" onclick="saveGeofence()">ジオフェンスを保存</button>
+      <button class="btn-geo btn-geo-clear" onclick="clearGeofence()">クリア</button>
+      <div id="geoStatusMsg" class="geo-status">未設定: エリアの座標を入力してください</div>
+      <div style="margin-top:16px;padding:12px;background:var(--navy-mid);border-radius:8px;font-size:12px;color:var(--gray);line-height:1.6;">
+        <strong style="color:var(--white);">💡 設定ヒント</strong><br>
+        ①積込場所の座標 → 地図にバックホウアイコン表示<br>
+        ②荷降場所の座標＋半径 → サイクル検知＋地図にバックホウアイコン表示<br>
+        ③Google Mapsで座標取得: 地点を長押し → 座標をコピー<br>
+        ④積込完了はオペレーターモードのボタンで送信します
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="tabHistory" class="tab-panel hidden">
+      <div class="history-controls">
+        <button class="btn-csv" onclick="exportCSV()">📥 CSV出力</button>
+        <button class="btn-clear-history" onclick="clearHistory()">🗑 クリア</button>
+        <span class="history-count"><span id="histCount">0</span>件</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>車両</th>
+              <th>サイクル#</th>
+              <th>積込完了</th>
+              <th>運搬(分)</th>
+              <th>荷降(分)</th>
+              <th>戻り(分)</th>
+              <th>合計(分)</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+          </tbody>
+        </table>
+      </div>
+      <div id="historyEmpty" class="empty-state">
+        <div class="icon">📊</div>
+        <p>サイクル履歴なし<br>オペレーターモードで積込完了を送信し、<br>ジオフェンス設定後に自動記録されます</p>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-// ===== DB =====
-async function dbInsert(vid,lat,lng,spd,hdg,acc){const r=await fetch(API+'/vehicle_positions',{method:'POST',headers:H,body:JSON.stringify({vehicle_id:vid,lat,lng,speed:spd,heading:hdg,accuracy:acc})});return r.ok}
-async function dbGetLatest(){const since=new Date(Date.now()-5*60*1000).toISOString();const r=await fetch(API+'/vehicle_positions?select=vehicle_id,lat,lng,speed,heading,accuracy,created_at&created_at=gte.'+since+'&order=created_at.desc&limit=200',{headers:HR});if(!r.ok)return[];const rows=await r.json();const m={};rows.forEach(r=>{if(!m[r.vehicle_id])m[r.vehicle_id]=r});return Object.values(m)}
+// ===== SUPABASE CONFIG =====
+var SUPABASE_URL = 'https://jfzegcpfjvumxnsiumcu.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_fUesb_VIV5otkh_XctrCdQ_Ppgpw0q4';
+var TABLE = 'vehicle_positions';
+var LOADING_TABLE = 'loading_events';
 
-// ===== MODE =====
-function openSender(){document.getElementById('modesel').style.display='none';document.getElementById('sender').style.display='flex';initSender()}
-function openDash(){document.getElementById('modesel').style.display='none';document.getElementById('dash').style.display='flex';initDash()}
+// ===== SVG ICONS =====
+var DUMP_TRUCK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 32" width="48" height="32">' +
+  '<rect x="1" y="4" width="28" height="18" rx="2" fill="#e87c3e" stroke="#c96530" stroke-width="1.5"/>' +
+  '<rect x="29" y="10" width="16" height="12" rx="2" fill="#253750" stroke="#3498db" stroke-width="1"/>' +
+  '<rect x="31" y="12" width="5" height="5" rx="1" fill="#4aa3df"/>' +
+  '<circle cx="10" cy="26" r="4.5" fill="#333" stroke="#666" stroke-width="1.5"/>' +
+  '<circle cx="10" cy="26" r="2" fill="#888"/>' +
+  '<circle cx="22" cy="26" r="4.5" fill="#333" stroke="#666" stroke-width="1.5"/>' +
+  '<circle cx="22" cy="26" r="2" fill="#888"/>' +
+  '<circle cx="39" cy="26" r="4.5" fill="#333" stroke="#666" stroke-width="1.5"/>' +
+  '<circle cx="39" cy="26" r="2" fill="#888"/>' +
+  '<polygon points="1,4 29,4 25,0 5,0" fill="#d06a2e"/>' +
+  '</svg>';
 
-// ===== SENDER =====
-let sMap,sMk,sCr,sVid='D-01',sSend=false,sW=null,sI=null,sPos=null,sCnt=0;
-function initSender(){const c=document.getElementById('schips');for(let i=1;i<=10;i++){const id='D-'+String(i).padStart(2,'0');const e=document.createElement('div');e.className='sch'+(id===sVid?' on':'');e.textContent=id;e.onclick=()=>{document.querySelectorAll('.sch').forEach(x=>x.classList.remove('on'));e.classList.add('on');sVid=id};c.appendChild(e)}sMap=L.map('smap',{zoomControl:false}).setView([34.4,132.46],15);L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(sMap)}
-function toggleGPS(){if(!sSend){if(!navigator.geolocation){showSM('GPS非対応');return}sSend=true;document.getElementById('sbtn').textContent='GPS送信を停止';document.getElementById('sbtn').className='sb stop';document.getElementById('sdot').className='sd on';document.getElementById('stxt').textContent='送信中';document.getElementById('stxt').style.color='var(--green)';hideSM();sW=navigator.geolocation.watchPosition(p=>{sPos=p.coords;const{latitude:a,longitude:n}=p.coords;if(sMk){sMk.setLatLng([a,n]);sCr.setLatLng([a,n]);sMk.setStyle({fillColor:'#10b981'});sCr.setStyle({color:'#10b981',fillColor:'#10b981'})}else{sMk=L.circleMarker([a,n],{radius:8,fillColor:'#10b981',fillOpacity:1,color:'#fff',weight:2}).addTo(sMap);sCr=L.circle([a,n],{radius:30,color:'#10b981',fillColor:'#10b981',fillOpacity:.1,weight:1}).addTo(sMap)}sMap.panTo([a,n]);upSUI()},e=>{const m={1:'GPS権限が拒否されました',2:'位置情報を取得できません',3:'タイムアウト'};showSM(m[e.code]||'GPSエラー');stopGPS()},{enableHighAccuracy:true,maximumAge:0,timeout:15000});sendGPS();sI=setInterval(sendGPS,5000)}else stopGPS()}
-function stopGPS(){sSend=false;if(sW!==null)navigator.geolocation.clearWatch(sW);if(sI)clearInterval(sI);sW=null;sI=null;document.getElementById('sbtn').textContent='GPS送信を開始';document.getElementById('sbtn').className='sb go';document.getElementById('sdot').className='sd off';document.getElementById('stxt').textContent='停止中';document.getElementById('stxt').style.color=''}
-async function sendGPS(){if(!sPos||!sSend)return;const s=sPos.speed!==null?Math.round(sPos.speed*3.6):0;const ok=await dbInsert(sVid,sPos.latitude,sPos.longitude,s,sPos.heading||0,Math.round(sPos.accuracy||0));if(ok){sCnt++;document.getElementById('scnt').textContent=sCnt;hideSM()}else showSM('送信失敗')}
-function upSUI(){if(!sPos)return;document.getElementById('slat').textContent=sPos.latitude.toFixed(6);document.getElementById('slng').textContent=sPos.longitude.toFixed(6);document.getElementById('sspd').textContent=(sPos.speed!==null?Math.round(sPos.speed*3.6):0)+' km/h'}
-function showSM(t){const e=document.getElementById('smsg');e.textContent=t;e.style.display='block'}
-function hideSM(){document.getElementById('smsg').style.display='none'}
+var BACKHOE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 36" width="44" height="33">' +
+  '<rect x="12" y="14" width="22" height="12" rx="2" fill="#f1c40f" stroke="#d4a80e" stroke-width="1.5"/>' +
+  '<rect x="26" y="16" width="6" height="6" rx="1" fill="#e8b40a" stroke="#c9960a" stroke-width="0.5"/>' +
+  '<rect x="27" y="17" width="4" height="4" rx="0.5" fill="#87CEEB" opacity="0.6"/>' +
+  '<line x1="12" y1="14" x2="2" y2="6" stroke="#d4a80e" stroke-width="3" stroke-linecap="round"/>' +
+  '<line x1="2" y1="6" x2="8" y2="2" stroke="#d4a80e" stroke-width="3" stroke-linecap="round"/>' +
+  '<path d="M8,2 L10,0 L6,2 L8,4 Z" fill="#888" stroke="#666" stroke-width="0.5"/>' +
+  '<rect x="8" y="26" width="28" height="5" rx="2" fill="#333" stroke="#555" stroke-width="1"/>' +
+  '<circle cx="14" cy="30" r="3" fill="#444" stroke="#666" stroke-width="1"/>' +
+  '<circle cx="30" cy="30" r="3" fill="#444" stroke="#666" stroke-width="1"/>' +
+  '<circle cx="22" cy="30" r="2.5" fill="#444" stroke="#666" stroke-width="0.5"/>' +
+  '</svg>';
+
+function createTruckIcon(label, color) {
+  var svgStr = DUMP_TRUCK_SVG;
+  if (color) {
+    svgStr = svgStr.replace(/fill="#e87c3e"/g, 'fill="' + color + '"');
+    svgStr = svgStr.replace(/fill="#c96530"/, 'fill="' + color + '"');
+    svgStr = svgStr.replace(/fill="#d06a2e"/, 'fill="' + color + '"');
+  }
+  var encoded = 'data:image/svg+xml;base64,' + btoa(svgStr);
+  return L.divIcon({
+    className: '',
+    html: '<div style="position:relative;display:flex;flex-direction:column;align-items:center;">' +
+      '<img src="' + encoded + '" style="width:40px;height:27px;">' +
+      '<span class="truck-label">' + label + '</span>' +
+      '</div>',
+    iconSize: [48, 44],
+    iconAnchor: [24, 22]
+  });
+}
+
+function createBackhoeIcon(label, type) {
+  var encoded = 'data:image/svg+xml;base64,' + btoa(BACKHOE_SVG);
+  var labelClass = type === 'load' ? 'geo-label geo-label-load' : 'geo-label geo-label-dump';
+  return L.divIcon({
+    className: '',
+    html: '<div style="position:relative;display:flex;flex-direction:column;align-items:center;">' +
+      '<img src="' + encoded + '" style="width:38px;height:28px;">' +
+      '<span class="' + labelClass + '">' + label + '</span>' +
+      '</div>',
+    iconSize: [44, 48],
+    iconAnchor: [22, 24]
+  });
+}
+
+// ===== NAVIGATION =====
+function showRole() {
+  document.getElementById('roleSelect').classList.remove('hidden');
+  document.getElementById('gpsSender').classList.add('hidden');
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('operatorMode').classList.add('hidden');
+  stopGPS();
+  if (dashInterval) { clearInterval(dashInterval); dashInterval = null; }
+  if (loadingPollInterval) { clearInterval(loadingPollInterval); loadingPollInterval = null; }
+  if (vehiclePollInterval) { clearInterval(vehiclePollInterval); vehiclePollInterval = null; }
+  if (realtimeSub) { realtimeSub.unsubscribe(); realtimeSub = null; }
+}
+function showGPS() {
+  document.getElementById('roleSelect').classList.add('hidden');
+  document.getElementById('gpsSender').classList.remove('hidden');
+}
+function showDashboard() {
+  document.getElementById('roleSelect').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  loadGeofenceFromStorage();
+  startDashboard();
+}
+function showOperator() {
+  document.getElementById('roleSelect').classList.add('hidden');
+  document.getElementById('operatorMode').classList.remove('hidden');
+  initOperatorMode();
+}
+
+// ===== TAB SWITCHING =====
+function switchTab(btn) {
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.add('hidden'); });
+  document.getElementById(btn.dataset.tab).classList.remove('hidden');
+  if (btn.dataset.tab === 'tabMap' && map) {
+    setTimeout(function() { map.invalidateSize(); }, 100);
+  }
+}
+
+// ===== GPS SENDER =====
+var gpsWatchId = null;
+var gpsSending = false;
+var gpsSendCount = 0;
+var gpsSendInterval = null;
+var lastLat = null, lastLon = null, lastSpd = null;
+
+function toggleGPS() {
+  if (!gpsSending) { startGPS(); } else { stopGPS(); }
+}
+function startGPS() {
+  if (!navigator.geolocation) { alert('Geolocation非対応'); return; }
+  gpsSending = true;
+  var btn = document.getElementById('btnGps');
+  btn.textContent = 'GPS送信を停止';
+  btn.classList.remove('start'); btn.classList.add('stop');
+  var st = document.getElementById('gpsStatus');
+  st.className = 'status-badge on'; st.innerHTML = '<span class="dot"></span>送信中';
+
+  gpsWatchId = navigator.geolocation.watchPosition(
+    function(pos) {
+      lastLat = pos.coords.latitude;
+      lastLon = pos.coords.longitude;
+      lastSpd = pos.coords.speed != null ? (pos.coords.speed * 3.6) : 0;
+      document.getElementById('sLat').textContent = lastLat.toFixed(6);
+      document.getElementById('sLon').textContent = lastLon.toFixed(6);
+      document.getElementById('sSpd').textContent = lastSpd.toFixed(1);
+    },
+    function(err) { console.error('GPS error:', err); },
+    { enableHighAccuracy: true, maximumAge: 2000 }
+  );
+  gpsSendInterval = setInterval(sendPosition, 3000);
+}
+function stopGPS() {
+  gpsSending = false;
+  if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+  if (gpsSendInterval) { clearInterval(gpsSendInterval); gpsSendInterval = null; }
+  var btn = document.getElementById('btnGps');
+  btn.textContent = 'GPS送信を開始';
+  btn.classList.remove('stop'); btn.classList.add('start');
+  var st = document.getElementById('gpsStatus');
+  st.className = 'status-badge off'; st.innerHTML = '<span class="dot"></span>停止中';
+}
+function sendPosition() {
+  if (lastLat === null) return;
+  var vid = document.getElementById('vehicleId').value;
+  fetch(SUPABASE_URL + '/rest/v1/' + TABLE, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Prefer': 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify({
+      vehicle_id: vid,
+      latitude: lastLat,
+      longitude: lastLon,
+      speed: lastSpd || 0,
+      updated_at: new Date().toISOString()
+    })
+  }).then(function(res) {
+    if (res.ok) {
+      gpsSendCount++;
+      document.getElementById('sCnt').textContent = gpsSendCount;
+    }
+  }).catch(function(e) { console.error('Send error:', e); });
+}
+
+// ===== OPERATOR MODE =====
+var opTodayCount = 0;
+
+function initOperatorMode() {
+  var saved = localStorage.getItem('ft_operator_id');
+  if (saved) { document.getElementById('operatorId').value = saved; }
+  document.getElementById('operatorId').addEventListener('change', function() {
+    localStorage.setItem('ft_operator_id', this.value);
+  });
+  buildOperatorGrid();
+  fetchTodayCount();
+}
+
+function buildOperatorGrid() {
+  var grid = document.getElementById('opGrid');
+  var html = '';
+  for (var i = 1; i <= 20; i++) {
+    var num = i < 10 ? '0' + i : '' + i;
+    html += '<button class="op-btn" data-vid="dump-' + num + '" onclick="sendLoadingEvent(this)">';
+    html += 'D-' + num;
+    html += '<span class="btn-label">積込完了</span>';
+    html += '</button>';
+  }
+  grid.innerHTML = html;
+}
+
+function sendLoadingEvent(btn) {
+  var vid = btn.dataset.vid;
+  var opId = document.getElementById('operatorId').value.trim();
+  if (!opId) {
+    alert('オペレーターIDを入力してください');
+    document.getElementById('operatorId').focus();
+    return;
+  }
+  localStorage.setItem('ft_operator_id', opId);
+
+  btn.classList.add('sending');
+
+  fetch(SUPABASE_URL + '/rest/v1/' + LOADING_TABLE, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY
+    },
+    body: JSON.stringify({
+      vehicle_id: vid,
+      operator_id: opId
+    })
+  }).then(function(res) {
+    if (res.ok) {
+      btn.classList.remove('sending');
+      btn.classList.add('sent');
+      var origLabel = btn.querySelector('.btn-label');
+      origLabel.textContent = '送信済み';
+      opTodayCount++;
+      document.getElementById('opTotalCount').textContent = opTodayCount;
+      setTimeout(function() {
+        btn.classList.remove('sent');
+        origLabel.textContent = '積込完了';
+      }, 2000);
+    } else {
+      btn.classList.remove('sending');
+      alert('送信エラー: ' + res.status);
+    }
+  }).catch(function(e) {
+    btn.classList.remove('sending');
+    alert('通信エラー');
+    console.error('Loading event error:', e);
+  });
+}
+
+function fetchTodayCount() {
+  var today = new Date();
+  var yyyy = today.getFullYear();
+  var mm = (today.getMonth() + 1 < 10 ? '0' : '') + (today.getMonth() + 1);
+  var dd = (today.getDate() < 10 ? '0' : '') + today.getDate();
+  var dateStr = yyyy + '-' + mm + '-' + dd + 'T00:00:00';
+
+  fetch(SUPABASE_URL + '/rest/v1/' + LOADING_TABLE + '?created_at=gte.' + dateStr + '&select=id', {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Prefer': 'count=exact'
+    }
+  }).then(function(res) {
+    var count = res.headers.get('content-range');
+    if (count) {
+      var parts = count.split('/');
+      opTodayCount = parseInt(parts[1]) || 0;
+    }
+    return res.json();
+  }).then(function(data) {
+    if (typeof opTodayCount !== 'number' || isNaN(opTodayCount)) {
+      opTodayCount = data.length;
+    }
+    document.getElementById('opTotalCount').textContent = opTodayCount;
+  }).catch(function(e) { console.error('Count fetch error:', e); });
+}
 
 // ===== DASHBOARD =====
-let dMap,dMk={},dTr={},dSel=null,dData={};
+var dashInterval = null;
+var realtimeSub = null;
+var vehiclePollInterval = null;
+var loadingPollInterval = null;
+var vehicles = {};
+var geofence = { load: null, dump: null };
+var cycleStates = {};
+var cycleHistory = [];
+var cycleCounter = {};
+var lastLoadingEventId = 0;
 
-// Geofence data
-let geoZones={load:null,dump:null};
-let geoCircles={load:null,dump:null};
-let geoLabels={load:null,dump:null};
-let geoMode=null;
-const GEO_RADIUS=100; // meters
+// ===== MAP =====
+var map = null;
+var vehicleMarkers = {};
+var geoMarkers = { load: null, dump: null };
+var dumpCircle = null;
 
-// Cycle tracking
-let vehicleStates={}; // {vid: {state:'idle'|'loading'|'hauling'|'dumping'|'returning', since:ts}}
-let cycleHistory=[]; // [{vid, start, loadTime, haulTime, dumpTime, retTime, total}]
+function initMap() {
+  map = L.map('mapContainer', {
+    center: [34.505, 133.38],
+    zoom: 14,
+    zoomControl: true
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 19
+  }).addTo(map);
+  updateGeoMarkers();
+}
 
-function initDash(){
-  dMap=L.map('dmap').setView([34.4,132.46],14);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(dMap);
+function updateGeoMarkers() {
+  if (!map) return;
 
-  // Click to set geofence
-  dMap.on('click',e=>{
-    if(!geoMode)return;
-    const{lat,lng}=e.latlng;
-    geoZones[geoMode]={lat,lng};
+  if (geoMarkers.load) { map.removeLayer(geoMarkers.load); geoMarkers.load = null; }
+  if (geoMarkers.dump) { map.removeLayer(geoMarkers.dump); geoMarkers.dump = null; }
+  if (dumpCircle) { map.removeLayer(dumpCircle); dumpCircle = null; }
 
-    // Draw circle
-    if(geoCircles[geoMode])dMap.removeLayer(geoCircles[geoMode]);
-    if(geoLabels[geoMode])dMap.removeLayer(geoLabels[geoMode]);
-    const color=geoMode==='load'?'#f59e0b':'#8b5cf6';
-    geoCircles[geoMode]=L.circle([lat,lng],{radius:GEO_RADIUS,color,fillColor:color,fillOpacity:.08,weight:2,dashArray:'5 3'}).addTo(dMap);
-    const label=geoMode==='load'?'🏗 積込場':'📍 荷降場';
-    geoLabels[geoMode]=L.marker([lat,lng],{icon:L.divIcon({className:'',html:`<div class="gl" style="color:${color};border-color:${color}">${label}</div>`,iconSize:[70,18],iconAnchor:[35,-8]})}).addTo(dMap);
-    document.getElementById('geo-'+geoMode+'-coord').textContent=lat.toFixed(5)+', '+lng.toFixed(5);
-    document.getElementById('geo-'+geoMode+'-btn').textContent='変更';
+  if (geofence.load) {
+    geoMarkers.load = L.marker([geofence.load.lat, geofence.load.lon], {
+      icon: createBackhoeIcon('積込場', 'load'),
+      zIndexOffset: 500
+    }).addTo(map);
+  }
 
-    geoMode=null;
-    document.getElementById('geo-hint').style.display='none';
-    dMap.getContainer().style.cursor='';
+  if (geofence.dump) {
+    geoMarkers.dump = L.marker([geofence.dump.lat, geofence.dump.lon], {
+      icon: createBackhoeIcon('荷降場', 'dump'),
+      zIndexOffset: 500
+    }).addTo(map);
+    dumpCircle = L.circle([geofence.dump.lat, geofence.dump.lon], {
+      radius: geofence.dump.radius,
+      color: '#e74c3c',
+      fillColor: '#e74c3c',
+      fillOpacity: 0.1,
+      weight: 1.5,
+      dashArray: '6,4'
+    }).addTo(map);
+  }
+
+  fitMapBounds();
+}
+
+function fitMapBounds() {
+  if (!map) return;
+  var points = [];
+  if (geofence.load) { points.push([geofence.load.lat, geofence.load.lon]); }
+  if (geofence.dump) { points.push([geofence.dump.lat, geofence.dump.lon]); }
+  Object.values(vehicles).forEach(function(v) {
+    if (Date.now() - v.lastSeen < 120000) {
+      points.push([v.lat, v.lon]);
+    }
+  });
+  if (points.length >= 2) {
+    map.fitBounds(L.latLngBounds(points).pad(0.2));
+  } else if (points.length === 1) {
+    map.setView(points[0], 15);
+  }
+}
+
+function updateVehicleMarkers() {
+  if (!map) return;
+  var stateColors = {
+    idle: '#3498db',
+    hauling: '#e87c3e',
+    dumping: '#e74c3c',
+    returning: '#00bcd4',
+    offline: '#5a6a7a'
+  };
+  var active = Object.values(vehicles).filter(function(v) { return Date.now() - v.lastSeen < 120000; });
+
+  var activeIds = {};
+  active.forEach(function(v) {
+    activeIds[v.id] = true;
+    var cs = cycleStates[v.id];
+    var state = cs ? cs.state : 'offline';
+    var color = stateColors[state] || '#e87c3e';
+    var label = v.id.replace('dump-', 'D-');
+
+    if (vehicleMarkers[v.id]) {
+      vehicleMarkers[v.id].setLatLng([v.lat, v.lon]);
+      vehicleMarkers[v.id].setIcon(createTruckIcon(label, color));
+    } else {
+      vehicleMarkers[v.id] = L.marker([v.lat, v.lon], {
+        icon: createTruckIcon(label, color),
+        zIndexOffset: 1000
+      }).addTo(map);
+    }
   });
 
-  setInterval(()=>{document.getElementById('dclock').textContent=new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'})},1000);
-  refreshDash();
-  setInterval(refreshDash,3000);
+  Object.keys(vehicleMarkers).forEach(function(vid) {
+    if (!activeIds[vid]) {
+      map.removeLayer(vehicleMarkers[vid]);
+      delete vehicleMarkers[vid];
+    }
+  });
 }
 
-function setGeoMode(mode){
-  geoMode=mode;
-  document.getElementById('geo-hint').style.display='block';
-  dMap.getContainer().style.cursor='crosshair';
+function startDashboard() {
+  updateDashClock();
+  dashInterval = setInterval(updateDashClock, 1000);
+  if (!map) { initMap(); }
+  fetchVehicles();
+  vehiclePollInterval = setInterval(fetchVehicles, 5000);
+  fetchLoadingEvents();
+  loadingPollInterval = setInterval(fetchLoadingEvents, 10000);
+  loadHistoryFromStorage();
+  renderHistory();
 }
 
-function switchTab(n){
-  document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('on',i===n));
-  document.querySelectorAll('.dtpanel').forEach((p,i)=>p.classList.toggle('on',i===n));
+function updateDashClock() {
+  var now = new Date();
+  document.getElementById('dashTime').textContent =
+    now.toLocaleTimeString('ja-JP', { hour12: false });
 }
 
-// Distance in meters between two lat/lng points
-function distM(lat1,lng1,lat2,lng2){
-  const R=6371000;const dLat=(lat2-lat1)*Math.PI/180;const dLng=(lng2-lng1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+function fetchVehicles() {
+  var since = new Date(Date.now() - 120000).toISOString();
+  fetch(
+    SUPABASE_URL + '/rest/v1/' + TABLE + '?updated_at=gte.' + since + '&order=vehicle_id',
+    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+  ).then(function(res) {
+    if (!res.ok) return;
+    return res.json();
+  }).then(function(data) {
+    if (!data) return;
+    data.forEach(function(v) { processVehiclePosition(v); });
+    renderVehicles();
+    updateVehicleMarkers();
+  }).catch(function(e) { console.error('Fetch error:', e); });
 }
 
-function inZone(lat,lng,zone){
-  if(!zone)return false;
-  return distM(lat,lng,zone.lat,zone.lng)<=GEO_RADIUS;
+function fetchLoadingEvents() {
+  var today = new Date();
+  var yyyy = today.getFullYear();
+  var mm = (today.getMonth() + 1 < 10 ? '0' : '') + (today.getMonth() + 1);
+  var dd = (today.getDate() < 10 ? '0' : '') + today.getDate();
+  var dateStr = yyyy + '-' + mm + '-' + dd + 'T00:00:00';
+
+  var url = SUPABASE_URL + '/rest/v1/' + LOADING_TABLE + '?created_at=gte.' + dateStr + '&order=id.asc';
+  if (lastLoadingEventId > 0) {
+    url += '&id=gt.' + lastLoadingEventId;
+  }
+
+  fetch(url, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  }).then(function(res) {
+    if (!res.ok) return;
+    return res.json();
+  }).then(function(data) {
+    if (!data || data.length === 0) return;
+    data.forEach(function(evt) {
+      processLoadingEvent(evt);
+      if (evt.id > lastLoadingEventId) { lastLoadingEventId = evt.id; }
+    });
+    renderVehicles();
+  }).catch(function(e) { console.error('Loading events fetch error:', e); });
 }
 
-// State machine for cycle detection
-function updateCycleState(vid,lat,lng,ts){
-  if(!geoZones.load||!geoZones.dump)return;
-  if(!vehicleStates[vid])vehicleStates[vid]={state:'idle',since:ts,cycleStart:null,loadTime:0,haulTime:0,dumpTime:0};
+function processLoadingEvent(evt) {
+  var vid = evt.vehicle_id;
+  var evtTime = new Date(evt.created_at).getTime();
 
-  const s=vehicleStates[vid];
-  const inLoad=inZone(lat,lng,geoZones.load);
-  const inDump=inZone(lat,lng,geoZones.dump);
-  const prevState=s.state;
-  const elapsed=ts-s.since;
+  if (!cycleStates[vid]) {
+    cycleStates[vid] = { state: 'idle', cycleNum: 0, ts: {} };
+    cycleCounter[vid] = 0;
+  }
+  var cs = cycleStates[vid];
 
-  switch(s.state){
-    case 'idle':
-      if(inLoad){s.state='loading';s.since=ts;s.cycleStart=ts;s.loadTime=0;s.haulTime=0;s.dumpTime=0}
-      break;
-    case 'loading':
-      if(!inLoad){s.loadTime=elapsed;s.state='hauling';s.since=ts}
-      break;
+  if (cs.state === 'idle' || cs.state === 'returning') {
+    if (cs.state === 'returning' && cs.ts.loadComplete) {
+      cs.ts.returnEnd = evtTime;
+      recordCycle(vid, cs);
+    }
+    cycleCounter[vid]++;
+    cs.cycleNum = cycleCounter[vid];
+    cs.state = 'hauling';
+    cs.ts = { loadComplete: evtTime };
+  } else if (cs.state === 'hauling') {
+    cs.ts.loadComplete = evtTime;
+    cycleCounter[vid]++;
+    cs.cycleNum = cycleCounter[vid];
+    cs.ts = { loadComplete: evtTime };
+  } else if (cs.state === 'dumping') {
+    cs.ts.dumpEnd = evtTime;
+    cs.ts.returnEnd = evtTime;
+    recordCycle(vid, cs);
+    cycleCounter[vid]++;
+    cs.cycleNum = cycleCounter[vid];
+    cs.state = 'hauling';
+    cs.ts = { loadComplete: evtTime };
+  }
+}
+
+function processVehiclePosition(v) {
+  var vid = v.vehicle_id;
+  vehicles[vid] = {
+    id: vid,
+    lat: v.latitude,
+    lon: v.longitude,
+    speed: v.speed || 0,
+    lastSeen: new Date(v.updated_at).getTime()
+  };
+  document.getElementById('vLastRecv').textContent =
+    new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  if (!geofence.dump) return;
+  if (!cycleStates[vid]) return;
+
+  var cs = cycleStates[vid];
+  var inDump = isInsideGeofence(v.latitude, v.longitude, geofence.dump);
+
+  switch (cs.state) {
     case 'hauling':
-      if(inDump){s.haulTime=elapsed;s.state='dumping';s.since=ts}
-      else if(inLoad){s.state='loading';s.since=ts} // went back
+      if (inDump) {
+        cs.state = 'dumping';
+        cs.ts.dumpStart = Date.now();
+      }
       break;
     case 'dumping':
-      if(!inDump){s.dumpTime=elapsed;s.state='returning';s.since=ts}
-      break;
-    case 'returning':
-      if(inLoad){
-        // Cycle complete!
-        const retTime=elapsed;
-        const total=ts-s.cycleStart;
-        cycleHistory.unshift({vid,start:new Date(s.cycleStart).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}),
-          loadTime:s.loadTime,haulTime:s.haulTime,dumpTime:s.dumpTime,retTime,total});
-        if(cycleHistory.length>100)cycleHistory.pop();
-        // Reset for next cycle
-        s.state='loading';s.since=ts;s.cycleStart=ts;s.loadTime=0;s.haulTime=0;s.dumpTime=0;
+      if (!inDump) {
+        cs.state = 'returning';
+        cs.ts.dumpEnd = Date.now();
       }
-      else if(inDump){s.state='dumping';s.since=ts}
       break;
   }
 }
 
-function getVehicleStatus(vid,v){
-  const age=Date.now()-v.ts;
-  if(age>=60000)return{label:'オフライン',color:'#6b7280',cls:'background:rgba(107,114,128,.2);color:#6b7280'};
-  const s=vehicleStates[vid];
-  if(s){
-    const map={loading:{label:'積込中',color:'#f59e0b',cls:'background:rgba(245,158,11,.2);color:#f59e0b'},
-      hauling:{label:'実車走行',color:'#ef4444',cls:'background:rgba(239,68,68,.2);color:#ef4444'},
-      dumping:{label:'荷降中',color:'#8b5cf6',cls:'background:rgba(139,92,246,.2);color:#8b5cf6'},
-      returning:{label:'空車走行',color:'#3b82f6',cls:'background:rgba(59,130,246,.2);color:#3b82f6'}};
-    if(map[s.state])return map[s.state];
-  }
-  if(v.speed>5)return{label:'走行中',color:'#10b981',cls:'background:rgba(16,185,129,.2);color:#10b981'};
-  return{label:'停車中',color:'#f59e0b',cls:'background:rgba(245,158,11,.2);color:#f59e0b'};
+function isInsideGeofence(lat, lon, geo) {
+  if (!geo) return false;
+  var R = 6371000;
+  var dLat = (lat - geo.lat) * Math.PI / 180;
+  var dLon = (lon - geo.lon) * Math.PI / 180;
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(geo.lat * Math.PI/180) * Math.cos(lat * Math.PI/180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  var dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return dist <= geo.radius;
 }
 
-async function refreshDash(){
-  const rows=await dbGetLatest();
-  const now=Date.now();
-  document.getElementById('nodata').style.display=rows.length===0?'flex':'none';
+function recordCycle(vid, cs) {
+  var t = cs.ts;
+  if (!t.loadComplete) return;
+  var haulMin = t.dumpStart ? ((t.dumpStart - t.loadComplete) / 60000).toFixed(1) : '--';
+  var dumpMin = (t.dumpStart && t.dumpEnd) ? ((t.dumpEnd - t.dumpStart) / 60000).toFixed(1) : '--';
+  var returnMin = (t.dumpEnd && t.returnEnd) ? ((t.returnEnd - t.dumpEnd) / 60000).toFixed(1) : '--';
+  var totalMin = t.returnEnd ? ((t.returnEnd - t.loadComplete) / 60000).toFixed(1) : '--';
 
-  rows.forEach(r=>{
-    const ts=new Date(r.created_at).getTime();
-    dData[r.vehicle_id]={lat:r.lat,lng:r.lng,speed:r.speed||0,accuracy:r.accuracy||0,ts};
-    updateCycleState(r.vehicle_id,r.lat,r.lng,ts);
-  });
-
-  const ids=Object.keys(dData).sort();
-  const active=ids.filter(id=>(now-dData[id].ts)<60000);
-
-  document.getElementById('da').innerHTML=`${active.length}<span class="ds1u">台</span>`;
-  document.getElementById('dvc').textContent=ids.length+'台';
-  document.getElementById('dtc').innerHTML=`${cycleHistory.length}<span class="ds1u">回</span>`;
-
-  if(cycleHistory.length>0){
-    const avg=cycleHistory.reduce((s,c)=>s+c.total,0)/cycleHistory.length;
-    document.getElementById('dac').innerHTML=`${(avg/60000).toFixed(1)}<span class="ds1u">分</span>`;
-    // Breakdown bars
-    const al=cycleHistory.reduce((s,c)=>s+c.loadTime,0)/cycleHistory.length;
-    const ah=cycleHistory.reduce((s,c)=>s+c.haulTime,0)/cycleHistory.length;
-    const ad=cycleHistory.reduce((s,c)=>s+c.dumpTime,0)/cycleHistory.length;
-    const ar=cycleHistory.reduce((s,c)=>s+c.retTime,0)/cycleHistory.length;
-    const mx=Math.max(al,ah,ad,ar,1);
-    document.getElementById('cf-load').style.width=(al/mx*100)+'%';document.getElementById('cf-load').textContent=(al/60000).toFixed(1)+'分';
-    document.getElementById('cf-haul').style.width=(ah/mx*100)+'%';document.getElementById('cf-haul').textContent=(ah/60000).toFixed(1)+'分';
-    document.getElementById('cf-dump').style.width=(ad/mx*100)+'%';document.getElementById('cf-dump').textContent=(ad/60000).toFixed(1)+'分';
-    document.getElementById('cf-ret').style.width=(ar/mx*100)+'%';document.getElementById('cf-ret').textContent=(ar/60000).toFixed(1)+'分';
-  }
-
-  if(ids.length>0){
-    const latest=Math.max(...ids.map(id=>dData[id].ts));
-    document.getElementById('dlt').textContent=new Date(latest).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  }
-  if(!dMap._ctr&&ids.length>0){dMap.setView([dData[ids[0]].lat,dData[ids[0]].lng],15);dMap._ctr=true}
-
-  // List
-  const list=document.getElementById('dlist');list.innerHTML='';
-  ids.forEach(id=>{
-    const v=dData[id];const st=getVehicleStatus(id,v);
-    const age=now-v.ts;const ageStr=age<10000?'今':age<60000?Math.round(age/1000)+'秒前':Math.round(age/60000)+'分前';
-    if(dMk[id]){dMk[id].setLatLng([v.lat,v.lng]);dMk[id].setIcon(mkI(id,st.color))}
-    else{dMk[id]=L.marker([v.lat,v.lng],{icon:mkI(id,st.color)}).addTo(dMap);dMk[id].on('click',()=>selV(id))}
-    if(!dTr[id])dTr[id]={p:[],l:null};const tr=dTr[id];const lp=tr.p.length>0?tr.p[tr.p.length-1]:null;
-    if(!lp||lp[0]!==v.lat||lp[1]!==v.lng){tr.p.push([v.lat,v.lng]);if(tr.p.length>300)tr.p.shift()}
-    if(tr.l)tr.l.setLatLngs(tr.p);else tr.l=L.polyline(tr.p,{color:st.color,weight:2,opacity:.35}).addTo(dMap);
-
-    const el=document.createElement('div');el.className='dv'+(dSel===id?' sel':'');el.onclick=()=>selV(id);
-    const cs=vehicleStates[id];const cycCnt=cycleHistory.filter(c=>c.vid===id).length;
-    el.innerHTML=`<div class="dvi" style="background:rgba(16,185,129,.1)">🚛</div>
-      <div><div class="dvn">${id} <span class="dvtg" style="${st.cls}">${st.label}</span></div><div class="dvd">${v.speed||0}km/h ／ ${cycCnt}サイクル</div></div>
-      <div class="dvr"><div class="dvt">${new Date(v.ts).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div><div style="font-size:7px;color:var(--muted)">${ageStr}</div></div>`;
-    list.appendChild(el);
-  });
-
-  // Cycle table
-  const tbody=document.getElementById('cyc-body');tbody.innerHTML='';
-  cycleHistory.slice(0,30).forEach(c=>{
-    const fmt=ms=>ms>0?(ms/60000).toFixed(1)+'分':'--';
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${c.vid}</td><td>${c.start}</td><td>${fmt(c.loadTime)}</td><td>${fmt(c.haulTime)}</td><td>${fmt(c.dumpTime)}</td><td>${fmt(c.retTime)}</td><td style="color:var(--cyan);font-weight:700">${fmt(c.total)}</td>`;
-    tbody.appendChild(tr);
-  });
-
-  if(dSel&&dData[dSel])showDet(dSel);
+  var entry = {
+    vehicle: vid,
+    cycleNum: cs.cycleNum,
+    loadComplete: new Date(t.loadComplete).toLocaleTimeString('ja-JP', { hour12: false }),
+    haulMin: haulMin,
+    dumpMin: dumpMin,
+    returnMin: returnMin,
+    totalMin: totalMin,
+    date: new Date().toLocaleDateString('ja-JP')
+  };
+  cycleHistory.unshift(entry);
+  saveHistoryToStorage();
+  renderHistory();
 }
 
-function mkI(id,c){const n=id.replace('D-','');return L.divIcon({className:'',html:`<div style="position:relative"><div class="tl" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%)">${id}</div><div class="td" style="width:22px;height:22px;background:${c}">${n}</div></div>`,iconSize:[22,22],iconAnchor:[11,11]})}
-function selV(id){dSel=id;const v=dData[id];if(v)dMap.panTo([v.lat,v.lng],{animate:true});showDet(id);refreshDash()}
-function showDet(id){const v=dData[id];if(!v)return;document.getElementById('ddet').classList.add('vis');document.getElementById('ddt-t').textContent=id;const age=Date.now()-v.ts;const ageStr=age<10000?'数秒前':age<60000?Math.round(age/1000)+'秒前':Math.round(age/60000)+'分前';const st=getVehicleStatus(id,v);const cs=vehicleStates[id];const cycCnt=cycleHistory.filter(c=>c.vid===id).length;
-document.getElementById('ddt-b').innerHTML=`<div class="ddtr"><span class="ddtrl">ステータス</span><span class="dvtg" style="font-size:8px;${st.cls}">${st.label}</span></div>
-<div class="ddtr"><span class="ddtrl">速度</span><span class="ddtrv">${v.speed||0} km/h</span></div>
-<div class="ddtr"><span class="ddtrl">精度</span><span class="ddtrv">${v.accuracy||'--'} m</span></div>
-<div class="ddtr"><span class="ddtrl">更新</span><span class="ddtrv" style="color:${age<60000?'var(--green)':'var(--red)'}">${ageStr}</span></div>
-<div style="height:1px;background:var(--border);margin:3px 0"></div>
-<div class="ddtr"><span class="ddtrl">サイクル数</span><span class="ddtrv" style="color:var(--cyan)">${cycCnt}回</span></div>
-${cs?`<div class="ddtr"><span class="ddtrl">現在フェーズ</span><span class="ddtrv">${st.label}</span></div><div class="ddtr"><span class="ddtrl">経過</span><span class="ddtrv">${((Date.now()-cs.since)/60000).toFixed(1)}分</span></div>`:''}`;}
-function closeDet(){document.getElementById('ddet').classList.remove('vis');dSel=null;}
+function renderVehicles() {
+  var list = document.getElementById('vehicleList');
+  var active = Object.values(vehicles).filter(function(v) { return Date.now() - v.lastSeen < 120000; });
+  document.getElementById('vCount').textContent = active.length;
 
-function exportCSV(){
-  if(cycleHistory.length===0){alert('サイクルデータがありません');return}
-  let csv='車両,開始時刻,積込(分),実車(分),荷降(分),空車(分),合計(分)\n';
-  cycleHistory.forEach(c=>{
-    const fmt=ms=>ms>0?(ms/60000).toFixed(1):'0';
-    csv+=`${c.vid},${c.start},${fmt(c.loadTime)},${fmt(c.haulTime)},${fmt(c.dumpTime)},${fmt(c.retTime)},${fmt(c.total)}\n`;
-  });
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cycle_report_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  if (active.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📡</div><p>データ待機中<br>スマホでGPS送信を開始してください</p></div>';
+    return;
+  }
+
+  list.innerHTML = active.map(function(v) {
+    var cs = cycleStates[v.id];
+    var state = cs ? cs.state : 'offline';
+    var stateLabel = { idle:'待機中', hauling:'運搬中', dumping:'荷降中', returning:'戻り', offline:'未接続' };
+    var stateClass = 'state-' + state;
+    var elapsed = '--';
+    if (cs && cs.ts.loadComplete) {
+      elapsed = ((Date.now() - cs.ts.loadComplete) / 60000).toFixed(1) + '分';
+    }
+    return '<div class="vehicle-item">' +
+      '<div class="vi-header">' +
+        '<span class="vi-name">🚛 ' + v.id + '</span>' +
+        '<span class="vi-state ' + stateClass + '">' + (stateLabel[state] || state) + '</span>' +
+      '</div>' +
+      '<div class="vi-info">' +
+        '<span>速度: ' + v.speed.toFixed(0) + ' km/h</span>' +
+        '<span>サイクル#' + (cs ? cs.cycleNum : 0) + '</span>' +
+        '<span>経過: ' + elapsed + '</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ===== GEOFENCE SETTINGS =====
+function saveGeofence() {
+  var loadLat = parseFloat(document.getElementById('geoLoadLat').value);
+  var loadLon = parseFloat(document.getElementById('geoLoadLon').value);
+  var dumpLat = parseFloat(document.getElementById('geoDumpLat').value);
+  var dumpLon = parseFloat(document.getElementById('geoDumpLon').value);
+  var dumpR = parseFloat(document.getElementById('geoDumpRadius').value);
+
+  if (isNaN(dumpLat) || isNaN(dumpLon) || isNaN(dumpR)) {
+    alert('荷降エリアの座標と半径を入力してください'); return;
+  }
+
+  if (!isNaN(loadLat) && !isNaN(loadLon)) {
+    geofence.load = { lat: loadLat, lon: loadLon };
+  } else {
+    geofence.load = null;
+  }
+  geofence.dump = { lat: dumpLat, lon: dumpLon, radius: dumpR };
+
+  localStorage.setItem('ft_geofence_v2', JSON.stringify(geofence));
+
+  var msg = document.getElementById('geoStatusMsg');
+  msg.className = 'geo-status active';
+  var txt = '✅ 設定済み ｜ 荷降: (' + dumpLat.toFixed(4) + ', ' + dumpLon.toFixed(4) + ') R' + dumpR + 'm';
+  if (geofence.load) {
+    txt += ' ／ 積込: (' + loadLat.toFixed(4) + ', ' + loadLon.toFixed(4) + ')';
+  }
+  msg.textContent = txt;
+
+  cycleStates = {};
+  lastLoadingEventId = 0;
+  fetchLoadingEvents();
+  updateGeoMarkers();
+}
+
+function clearGeofence() {
+  geofence = { load: null, dump: null };
+  localStorage.removeItem('ft_geofence_v2');
+  document.getElementById('geoLoadLat').value = '';
+  document.getElementById('geoLoadLon').value = '';
+  document.getElementById('geoDumpLat').value = '';
+  document.getElementById('geoDumpLon').value = '';
+  document.getElementById('geoDumpRadius').value = '50';
+  var msg = document.getElementById('geoStatusMsg');
+  msg.className = 'geo-status';
+  msg.textContent = '未設定: エリアの座標を入力してください';
+  cycleStates = {};
+  updateGeoMarkers();
+}
+
+function loadGeofenceFromStorage() {
+  try {
+    var saved = localStorage.getItem('ft_geofence_v2');
+    if (!saved) return;
+    var g = JSON.parse(saved);
+    geofence = g;
+    if (g.load) {
+      document.getElementById('geoLoadLat').value = g.load.lat;
+      document.getElementById('geoLoadLon').value = g.load.lon;
+    }
+    if (g.dump) {
+      document.getElementById('geoDumpLat').value = g.dump.lat;
+      document.getElementById('geoDumpLon').value = g.dump.lon;
+      document.getElementById('geoDumpRadius').value = g.dump.radius;
+    }
+    var msg = document.getElementById('geoStatusMsg');
+    if (g.dump) {
+      msg.className = 'geo-status active';
+      var txt = '✅ 設定済み ｜ 荷降: (' + g.dump.lat.toFixed(4) + ', ' + g.dump.lon.toFixed(4) + ') R' + g.dump.radius + 'm';
+      if (g.load) {
+        txt += ' ／ 積込: (' + g.load.lat.toFixed(4) + ', ' + g.load.lon.toFixed(4) + ')';
+      }
+      msg.textContent = txt;
+    }
+  } catch(e) {}
+}
+
+// ===== CYCLE HISTORY =====
+function renderHistory() {
+  var body = document.getElementById('historyBody');
+  var empty = document.getElementById('historyEmpty');
+  document.getElementById('histCount').textContent = cycleHistory.length;
+
+  if (cycleHistory.length === 0) {
+    body.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  body.innerHTML = cycleHistory.map(function(h) {
+    return '<tr>' +
+      '<td>' + h.vehicle + '</td>' +
+      '<td>' + h.cycleNum + '</td>' +
+      '<td>' + h.loadComplete + '</td>' +
+      '<td>' + h.haulMin + '</td>' +
+      '<td>' + h.dumpMin + '</td>' +
+      '<td>' + h.returnMin + '</td>' +
+      '<td><strong>' + h.totalMin + '</strong></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function saveHistoryToStorage() {
+  try { localStorage.setItem('ft_history', JSON.stringify(cycleHistory)); } catch(e) {}
+}
+function loadHistoryFromStorage() {
+  try {
+    var saved = localStorage.getItem('ft_history');
+    if (saved) { cycleHistory = JSON.parse(saved); }
+  } catch(e) {}
+}
+function clearHistory() {
+  if (!confirm('サイクル履歴をすべて削除しますか？')) return;
+  cycleHistory = [];
+  localStorage.removeItem('ft_history');
+  renderHistory();
+}
+
+// ===== CSV EXPORT =====
+function exportCSV() {
+  if (cycleHistory.length === 0) { alert('履歴がありません'); return; }
+  var header = '日付,車両,サイクル#,積込完了,運搬(分),荷降(分),戻り(分),合計(分)\n';
+  var rows = cycleHistory.map(function(h) {
+    return h.date + ',' + h.vehicle + ',' + h.cycleNum + ',' + h.loadComplete + ',' + h.haulMin + ',' + h.dumpMin + ',' + h.returnMin + ',' + h.totalMin;
+  }).join('\n');
+  var bom = '\uFEFF';
+  var blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'cycle_time_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 </script>
 </body>
