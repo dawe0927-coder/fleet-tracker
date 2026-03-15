@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FleetTracker</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{--bg:#0a0e17;--bg2:#111827;--card:#1a2235;--border:#2a3550;--text:#e8ecf4;--text2:#8899b4;--muted:#556680;--cyan:#06b6d4;--blue:#3b82f6;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+
+/* Mode select */
+#modesel{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:20px;padding:20px}
+#modesel h1{font-size:26px;font-weight:900}
+#modesel h1 span{color:var(--cyan)}
+#modesel p{color:var(--text2);font-size:13px;text-align:center;max-width:340px}
+.mbtn{width:100%;max-width:300px;padding:18px;border-radius:12px;border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:left;transition:all .2s;color:var(--text)}
+.mbtn:active{border-color:var(--cyan);transform:scale(.98)}
+.mbtn-i{font-size:28px;margin-bottom:6px}
+.mbtn-t{font-size:15px;font-weight:700;margin-bottom:3px}
+.mbtn-d{font-size:11px;color:var(--text2)}
+
+/* ===== SENDER ===== */
+#sender{display:none;flex-direction:column;height:100vh}
+.s-head{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.s-head h2{font-size:15px;font-weight:700}
+.s-status{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.s-dot{width:7px;height:7px;border-radius:50%}
+.s-dot.on{background:var(--green);animation:p 2s infinite}
+.s-dot.off{background:var(--red)}
+@keyframes p{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 5px rgba(16,185,129,0)}}
+.s-map{flex:1}
+#smap{width:100%;height:100%}
+.s-panel{padding:14px 16px;background:var(--bg2);border-top:1px solid var(--border)}
+.s-chips{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.s-chip{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2)}
+.s-chip.on{background:var(--cyan);border-color:var(--cyan);color:#fff}
+.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.s-item{background:var(--card);border-radius:6px;padding:6px 10px;border:1px solid var(--border)}
+.s-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.s-val{font-family:monospace;font-size:15px;font-weight:700;margin-top:1px}
+.s-btn{width:100%;padding:13px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;color:#fff;transition:all .2s}
+.s-btn.go{background:var(--green)}.s-btn.stop{background:var(--red)}
+.s-msg{font-size:11px;color:var(--amber);margin-top:8px;text-align:center;display:none}
+
+/* ===== DASHBOARD ===== */
+#dash{display:none;height:100vh;flex-direction:column}
+.d-head{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:46px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.d-logo{font-size:14px;font-weight:900}.d-logo span{color:var(--cyan)}
+.d-live{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--green)}
+.d-clock{font-family:monospace;font-size:12px;font-weight:600}
+.d-body{display:flex;flex:1;overflow:hidden}
+.d-side{width:300px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.d-stats{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:8px;border-bottom:1px solid var(--border)}
+.d-stat{background:var(--card);border-radius:6px;padding:6px 8px;border:1px solid var(--border)}
+.d-stat-l{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.d-stat-v{font-family:monospace;font-size:17px;font-weight:700}
+.d-stat-u{font-size:9px;color:var(--text2)}
+.d-lh{padding:6px 10px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text2)}
+.d-list{flex:1;overflow-y:auto;padding:3px}
+.d-list::-webkit-scrollbar{width:3px}.d-list::-webkit-scrollbar-thumb{background:var(--border)}
+.d-vi{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;cursor:pointer;border:1px solid transparent;margin-bottom:1px}
+.d-vi:hover{background:var(--card)}.d-vi.sel{background:var(--card);border-color:var(--cyan)}
+.d-vi-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.d-vi-nm{font-size:11px;font-weight:600}
+.d-vi-tag{font-size:7px;font-weight:700;padding:1px 4px;border-radius:2px}
+.d-vi-det{font-size:9px;color:var(--muted)}
+.d-vi-rt{margin-left:auto;text-align:right}
+.d-vi-tm{font-family:monospace;font-size:9px;color:var(--text2)}
+.d-mapw{flex:1;position:relative}
+#dmap{width:100%;height:100%}
+.leaflet-container{background:var(--bg)!important}
+.d-det{position:absolute;top:8px;right:8px;z-index:999;width:220px;background:rgba(17,24,39,.94);backdrop-filter:blur(10px);border-radius:8px;border:1px solid var(--border);display:none}
+.d-det.vis{display:block}
+.d-det-h{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--border)}
+.d-det-t{font-size:13px;font-weight:700}
+.d-det-x{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer}
+.d-det-b{padding:8px 10px}
+.d-det-r{display:flex;justify-content:space-between;padding:2px 0;font-size:10px}
+.d-det-rl{color:var(--muted)}.d-det-rv{font-family:monospace;font-weight:600}
+.d-nodata{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:998;background:rgba(17,24,39,.9);padding:20px 28px;border-radius:10px;border:1px solid var(--border);text-align:center}
+.d-nodata h3{font-size:15px;margin-bottom:6px}.d-nodata p{font-size:11px;color:var(--text2);max-width:260px}
+.t-label{background:rgba(10,14,23,.85);padding:1px 4px;border-radius:2px;font-family:monospace;font-size:8px;font-weight:600;color:#fff;white-space:nowrap}
+.t-dot{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:10px;font-weight:800;color:#fff}
+@media(max-width:768px){.d-side{width:220px;min-width:220px}}
+</style>
+</head>
+<body>
+
+<!-- ===== CONFIG ===== -->
+<script>
+const SUPABASE_URL = 'https://jfzegcpfjvumxnsiumcu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_fUesb_VIV5otkh_XctrCdQ_Ppgpw0q4';
+const API = SUPABASE_URL + '/rest/v1';
+const HEADERS = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=minimal'
+};
+</script>
+
+<!-- MODE SELECT -->
+<div id="modesel">
+  <h1><span>Fleet</span>Tracker</h1>
+  <p>デバイスの役割を選択</p>
+  <button class="mbtn" onclick="openSender()">
+    <div class="mbtn-i">📱</div>
+    <div class="mbtn-t">GPS送信モード</div>
+    <div class="mbtn-d">スマホのGPSで位置を送信。iPhoneのSafariで開いてください。</div>
+  </button>
+  <button class="mbtn" onclick="openDash()">
+    <div class="mbtn-i">🖥️</div>
+    <div class="mbtn-t">ダッシュボード</div>
+    <div class="mbtn-d">全車両の位置をリアルタイム表示。PCで閲覧。</div>
+  </button>
+  <p style="font-size:10px;color:var(--muted);margin-top:12px">接続先: Supabase (Tokyo)</p>
+</div>
+
+<!-- SENDER -->
+<div id="sender">
+  <div class="s-head">
+    <h2>📱 GPS送信</h2>
+    <div class="s-status"><div class="s-dot off" id="sdot"></div><span id="stxt">停止中</span></div>
+  </div>
+  <div class="s-map"><div id="smap"></div></div>
+  <div class="s-panel">
+    <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:5px">車両選択</div>
+    <div class="s-chips" id="schips"></div>
+    <div class="s-grid">
+      <div class="s-item"><div class="s-lbl">緯度</div><div class="s-val" id="slat">--</div></div>
+      <div class="s-item"><div class="s-lbl">経度</div><div class="s-val" id="slng">--</div></div>
+      <div class="s-item"><div class="s-lbl">速度</div><div class="s-val" id="sspd">--</div></div>
+      <div class="s-item"><div class="s-lbl">送信回数</div><div class="s-val" id="scnt">0</div></div>
+    </div>
+    <button class="s-btn go" id="sbtn" onclick="toggleGPS()">GPS送信を開始</button>
+    <div class="s-msg" id="smsg"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash">
+  <div class="d-head">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="d-logo"><span>Fleet</span>Tracker</div>
+      <div class="d-live"><div class="s-dot on"></div>LIVE</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:10px;color:var(--text2)">3秒更新</div>
+      <div class="d-clock" id="dclock">--:--:--</div>
+    </div>
+  </div>
+  <div class="d-body">
+    <div class="d-side">
+      <div class="d-stats">
+        <div class="d-stat"><div class="d-stat-l">接続台数</div><div class="d-stat-v" style="color:var(--green)" id="da">0<span class="d-stat-u">台</span></div></div>
+        <div class="d-stat"><div class="d-stat-l">最終受信</div><div class="d-stat-v" style="color:var(--cyan)" id="dl">--:--</div></div>
+      </div>
+      <div class="d-lh">車両一覧 <span id="dvc" style="float:right;font-weight:400">0台</span></div>
+      <div class="d-list" id="dlist"></div>
+    </div>
+    <div class="d-mapw">
+      <div id="dmap"></div>
+      <div class="d-det" id="ddet">
+        <div class="d-det-h"><div class="d-det-t" id="ddt">-</div><button class="d-det-x" onclick="closeDet()">×</button></div>
+        <div class="d-det-b" id="ddb"></div>
+      </div>
+      <div class="d-nodata" id="dnodata">
+        <h3>📡 データ待機中</h3>
+        <p>スマホのSafariでこのページを開き「GPS送信モード」で送信を開始すると、ここに表示されます。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== SUPABASE REST HELPERS =====
+async function dbInsert(vehicleId, lat, lng, speed, heading, accuracy) {
+  const res = await fetch(API + '/vehicle_positions', {
+    method: 'POST',
+    headers: HEADERS,
+    body: JSON.stringify({ vehicle_id: vehicleId, lat, lng, speed, heading, accuracy })
+  });
+  return res.ok;
+}
+
+async function dbGetLatest() {
+  // Get latest position per vehicle (last 5 min)
+  const since = new Date(Date.now() - 5*60*1000).toISOString();
+  const res = await fetch(
+    API + '/vehicle_positions?select=vehicle_id,lat,lng,speed,heading,accuracy,created_at&created_at=gte.' + since + '&order=created_at.desc&limit=200',
+    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+  );
+  if (!res.ok) return [];
+  const rows = await res.json();
+  // Deduplicate: keep latest per vehicle
+  const map = {};
+  rows.forEach(r => { if (!map[r.vehicle_id]) map[r.vehicle_id] = r; });
+  return Object.values(map);
+}
+
+// ===== MODE SWITCHING =====
+function openSender() {
+  document.getElementById('modesel').style.display = 'none';
+  document.getElementById('sender').style.display = 'flex';
+  initSender();
+}
+function openDash() {
+  document.getElementById('modesel').style.display = 'none';
+  document.getElementById('dash').style.display = 'flex';
+  initDash();
+}
+
+// ==============================
+//  SENDER
+// ==============================
+let sMap, sMark, sCirc, sVehicle = 'D-01', sSending = false, sWatch = null, sIntv = null, sPos = null, sCount = 0;
+
+function initSender() {
+  const chips = document.getElementById('schips');
+  for (let i = 1; i <= 10; i++) {
+    const id = 'D-' + String(i).padStart(2,'0');
+    const c = document.createElement('div');
+    c.className = 's-chip' + (id === sVehicle ? ' on' : '');
+    c.textContent = id;
+    c.onclick = () => { document.querySelectorAll('.s-chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); sVehicle = id; };
+    chips.appendChild(c);
+  }
+  sMap = L.map('smap', { zoomControl: false }).setView([34.4, 132.46], 15);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(sMap);
+}
+
+function toggleGPS() {
+  if (!sSending) {
+    if (!navigator.geolocation) { showSMsg('このブラウザはGPS非対応です'); return; }
+    sSending = true;
+    document.getElementById('sbtn').textContent = 'GPS送信を停止';
+    document.getElementById('sbtn').className = 's-btn stop';
+    document.getElementById('sdot').className = 's-dot on';
+    document.getElementById('stxt').textContent = '送信中';
+    document.getElementById('stxt').style.color = 'var(--green)';
+    hideSMsg();
+
+    sWatch = navigator.geolocation.watchPosition(pos => {
+      sPos = pos.coords;
+      const {latitude: la, longitude: ln} = pos.coords;
+      if (sMark) { sMark.setLatLng([la,ln]); sCirc.setLatLng([la,ln]); sMark.setStyle({fillColor:'#10b981'}); sCirc.setStyle({color:'#10b981',fillColor:'#10b981'}); }
+      else {
+        sMark = L.circleMarker([la,ln],{radius:8,fillColor:'#10b981',fillOpacity:1,color:'#fff',weight:2}).addTo(sMap);
+        sCirc = L.circle([la,ln],{radius:30,color:'#10b981',fillColor:'#10b981',fillOpacity:.1,weight:1}).addTo(sMap);
+      }
+      sMap.panTo([la,ln]);
+      updateSUI();
+    }, err => {
+      const m = {1:'GPS権限が拒否されました。Safariの設定で位置情報を許可してください。',2:'位置情報を取得できません。屋外で試してください。',3:'GPS取得がタイムアウトしました。'};
+      showSMsg(m[err.code]||'GPSエラーが発生しました');
+      stopGPS();
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+
+    sendGPS();
+    sIntv = setInterval(sendGPS, 5000);
+  } else {
+    stopGPS();
+  }
+}
+
+function stopGPS() {
+  sSending = false;
+  if (sWatch !== null) navigator.geolocation.clearWatch(sWatch);
+  if (sIntv) clearInterval(sIntv);
+  sWatch = null; sIntv = null;
+  document.getElementById('sbtn').textContent = 'GPS送信を開始';
+  document.getElementById('sbtn').className = 's-btn go';
+  document.getElementById('sdot').className = 's-dot off';
+  document.getElementById('stxt').textContent = '停止中';
+  document.getElementById('stxt').style.color = '';
+}
+
+async function sendGPS() {
+  if (!sPos || !sSending) return;
+  const spd = sPos.speed !== null ? Math.round(sPos.speed * 3.6) : 0;
+  const hdg = sPos.heading || 0;
+  const acc = Math.round(sPos.accuracy || 0);
+  const ok = await dbInsert(sVehicle, sPos.latitude, sPos.longitude, spd, hdg, acc);
+  if (ok) {
+    sCount++;
+    document.getElementById('scnt').textContent = sCount;
+    hideSMsg();
+  } else {
+    showSMsg('データ送信に失敗しました。ネットワークを確認してください。');
+  }
+}
+
+function updateSUI() {
+  if (!sPos) return;
+  document.getElementById('slat').textContent = sPos.latitude.toFixed(6);
+  document.getElementById('slng').textContent = sPos.longitude.toFixed(6);
+  document.getElementById('sspd').textContent = (sPos.speed !== null ? Math.round(sPos.speed*3.6) : 0) + ' km/h';
+}
+
+function showSMsg(t) { const e=document.getElementById('smsg'); e.textContent=t; e.style.display='block'; }
+function hideSMsg() { document.getElementById('smsg').style.display='none'; }
+
+// ==============================
+//  DASHBOARD
+// ==============================
+let dMap, dMarkers = {}, dTrails = {}, dSel = null, dData = {};
+
+function initDash() {
+  dMap = L.map('dmap').setView([34.4, 132.46], 14);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(dMap);
+
+  setInterval(() => {
+    document.getElementById('dclock').textContent = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }, 1000);
+
+  refreshDash();
+  setInterval(refreshDash, 3000);
+}
+
+async function refreshDash() {
+  const rows = await dbGetLatest();
+  const now = Date.now();
+
+  document.getElementById('dnodata').style.display = rows.length === 0 ? 'flex' : 'none';
+
+  // Update data
+  rows.forEach(r => {
+    const ts = new Date(r.created_at).getTime();
+    dData[r.vehicle_id] = { lat: r.lat, lng: r.lng, speed: r.speed||0, accuracy: r.accuracy||0, ts };
+  });
+
+  const ids = Object.keys(dData).sort();
+  const active = ids.filter(id => (now - dData[id].ts) < 60000);
+
+  document.getElementById('da').innerHTML = `${active.length}<span class="d-stat-u">台</span>`;
+  document.getElementById('dvc').textContent = ids.length + '台';
+  if (ids.length > 0) {
+    const latest = Math.max(...ids.map(id => dData[id].ts));
+    document.getElementById('dl').textContent = new Date(latest).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+
+  // Center map on first data
+  if (!dMap._centered && ids.length > 0) {
+    const f = dData[ids[0]];
+    dMap.setView([f.lat, f.lng], 15);
+    dMap._centered = true;
+  }
+
+  // Update list
+  const list = document.getElementById('dlist');
+  list.innerHTML = '';
+  ids.forEach(id => {
+    const v = dData[id];
+    const age = now - v.ts;
+    const online = age < 60000;
+    const color = online ? (v.speed > 5 ? '#10b981' : '#f59e0b') : '#6b7280';
+    const status = online ? (v.speed > 5 ? '走行中' : '停車中') : 'オフライン';
+    const stCls = online ? (v.speed > 5 ? 'background:rgba(16,185,129,.2);color:#10b981' : 'background:rgba(245,158,11,.2);color:#f59e0b') : 'background:rgba(107,114,128,.2);color:#6b7280';
+    const ageStr = age < 10000 ? '今' : age < 60000 ? Math.round(age/1000)+'秒前' : Math.round(age/60000)+'分前';
+
+    // Map marker
+    if (dMarkers[id]) {
+      dMarkers[id].setLatLng([v.lat, v.lng]);
+      dMarkers[id].setIcon(mkIcon(id, color));
+    } else {
+      dMarkers[id] = L.marker([v.lat, v.lng], { icon: mkIcon(id, color) }).addTo(dMap);
+      dMarkers[id].on('click', () => selVehicle(id));
+    }
+
+    // Trail
+    if (!dTrails[id]) dTrails[id] = { pts: [], line: null };
+    const tr = dTrails[id];
+    const lp = tr.pts.length > 0 ? tr.pts[tr.pts.length-1] : null;
+    if (!lp || lp[0]!==v.lat || lp[1]!==v.lng) { tr.pts.push([v.lat, v.lng]); if(tr.pts.length>300) tr.pts.shift(); }
+    if (tr.line) tr.line.setLatLngs(tr.pts); else tr.line = L.polyline(tr.pts,{color,weight:2,opacity:.35}).addTo(dMap);
+
+    const el = document.createElement('div');
+    el.className = 'd-vi' + (dSel===id?' sel':'');
+    el.onclick = () => selVehicle(id);
+    el.innerHTML = `<div class="d-vi-ico" style="background:${online?'rgba(16,185,129,.12)':'rgba(107,114,128,.12)'}">🚛</div>
+      <div><div class="d-vi-nm">${id} <span class="d-vi-tag" style="${stCls}">${status}</span></div><div class="d-vi-det">${v.speed||0}km/h</div></div>
+      <div class="d-vi-rt"><div class="d-vi-tm">${new Date(v.ts).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div><div style="font-size:8px;color:var(--muted)">${ageStr}</div></div>`;
+    list.appendChild(el);
+  });
+
+  if (dSel && dData[dSel]) showDet(dSel);
+}
+
+function mkIcon(id, color) {
+  const n = id.replace('D-','');
+  return L.divIcon({ className:'', html:`<div style="position:relative"><div class="t-label" style="position:absolute;top:-15px;left:50%;transform:translateX(-50%)">${id}</div><div class="t-dot" style="width:24px;height:24px;background:${color}">${n}</div></div>`, iconSize:[24,24], iconAnchor:[12,12] });
+}
+
+function selVehicle(id) {
+  dSel = id;
+  const v = dData[id];
+  if (v) dMap.panTo([v.lat, v.lng], {animate:true});
+  showDet(id);
+  refreshDash();
+}
+
+function showDet(id) {
+  const v = dData[id]; if(!v) return;
+  document.getElementById('ddet').classList.add('vis');
+  document.getElementById('ddt').textContent = id;
+  const age = Date.now()-v.ts;
+  const ageStr = age<10000?'数秒前':age<60000?Math.round(age/1000)+'秒前':Math.round(age/60000)+'分前';
+  const online = age < 60000;
+  document.getElementById('ddb').innerHTML = `
+    <div class="d-det-r"><span class="d-det-rl">速度</span><span class="d-det-rv">${v.speed||0} km/h</span></div>
+    <div class="d-det-r"><span class="d-det-rl">GPS精度</span><span class="d-det-rv">${v.accuracy||'--'} m</span></div>
+    <div class="d-det-r"><span class="d-det-rl">最終更新</span><span class="d-det-rv" style="color:${online?'var(--green)':'var(--red)'};">${ageStr}</span></div>
+    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+    <div class="d-det-r"><span class="d-det-rl">緯度</span><span class="d-det-rv">${v.lat.toFixed(6)}</span></div>
+    <div class="d-det-r"><span class="d-det-rl">経度</span><span class="d-det-rv">${v.lng.toFixed(6)}</span></div>
+    <div class="d-det-r"><span class="d-det-rl">軌跡</span><span class="d-det-rv">${(dTrails[id]?.pts||[]).length}点</span></div>`;
+}
+
+function closeDet() { document.getElementById('ddet').classList.remove('vis'); dSel=null; }
+</script>
+</body>
+</html>
