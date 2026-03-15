@@ -1,1 +1,821 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FleetTracker v2</title>
+<style>
+:root {
+  --navy: #0f1a2e;
+  --navy-light: #1a2942;
+  --navy-mid: #253750;
+  --orange: #e87c3e;
+  --orange-dark: #c96530;
+  --green: #2ecc71;
+  --green-dark: #1a7a42;
+  --red: #e74c3c;
+  --yellow: #f1c40f;
+  --blue: #3498db;
+  --cyan: #00bcd4;
+  --white: #f0f2f5;
+  --gray: #8899aa;
+  --gray-dark: #5a6a7a;
+  --bg: #0a1220;
+  --card: #111d2e;
+  --border: #1e3048;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+.hidden { display: none !important; }
 
+/* ===== ROLE SELECT ===== */
+#roleSelect {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 100vh; padding: 20px; gap: 24px;
+}
+#roleSelect h1 {
+  font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+#roleSelect p { color: var(--gray); font-size: 14px; }
+.role-cards { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.role-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 28px 24px; width: 200px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+}
+.role-card:hover { border-color: var(--orange); transform: translateY(-2px); }
+.role-card .icon { font-size: 36px; margin-bottom: 12px; }
+.role-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.role-card p { font-size: 12px; color: var(--gray); line-height: 1.5; }
+
+/* ===== GPS SENDER ===== */
+#gpsSender {
+  padding: 20px; max-width: 420px; margin: 0 auto;
+}
+.sender-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+}
+.sender-header h2 { font-size: 18px; font-weight: 700; }
+.back-btn {
+  background: var(--navy-mid); border: none; color: var(--white);
+  width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+}
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.status-badge.off { background: rgba(231,76,60,0.15); color: var(--red); }
+.status-badge.on { background: rgba(46,204,113,0.15); color: var(--green); }
+.status-badge .dot {
+  width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+}
+.status-badge.on .dot { animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.sender-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0;
+}
+.sender-stat {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+}
+.sender-stat label { font-size: 11px; color: var(--gray); display: block; margin-bottom: 4px; }
+.sender-stat .val { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.vehicle-select {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  color: var(--white); padding: 12px 14px; border-radius: 10px;
+  font-size: 15px; margin-bottom: 16px; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238899aa'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.vehicle-select option { background: var(--navy); }
+
+.btn-send {
+  width: 100%; padding: 16px; border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.btn-send.start { background: var(--green); color: #fff; }
+.btn-send.start:hover { background: var(--green-dark); }
+.btn-send.stop { background: var(--red); color: #fff; }
+
+/* ===== DASHBOARD ===== */
+#dashboard { height: 100vh; display: flex; flex-direction: column; }
+.dash-header {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  background: var(--navy); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.dash-header h2 { font-size: 16px; font-weight: 700; flex: 1; }
+.dash-header .live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  animation: pulse 1.5s infinite;
+}
+.dash-header .time { font-variant-numeric: tabular-nums; color: var(--gray); font-size: 13px; }
+
+/* Tab bar */
+.tab-bar {
+  display: flex; background: var(--navy); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tab-btn {
+  flex: 1; padding: 10px 8px; text-align: center; font-size: 13px;
+  font-weight: 600; color: var(--gray); background: none; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;
+}
+.tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+/* Tab content */
+.tab-content { flex: 1; overflow-y: auto; }
+.tab-panel { padding: 16px; }
+.tab-panel.hidden { display: none !important; }
+
+/* Vehicle list */
+.vehicle-count { font-size: 13px; color: var(--gray); margin-bottom: 12px; }
+.vehicle-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; margin-bottom: 10px;
+}
+.vehicle-item .vi-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.vehicle-item .vi-name { font-weight: 700; font-size: 15px; }
+.vehicle-item .vi-state {
+  font-size: 11px; font-weight: 600; padding: 3px 8px;
+  border-radius: 12px;
+}
+.state-waiting { background: rgba(52,152,219,0.15); color: var(--blue); }
+.state-loading { background: rgba(241,196,15,0.15); color: var(--yellow); }
+.state-hauling { background: rgba(232,124,62,0.15); color: var(--orange); }
+.state-dumping { background: rgba(231,76,60,0.15); color: var(--red); }
+.state-returning { background: rgba(0,188,212,0.15); color: var(--cyan); }
+.state-offline { background: rgba(90,106,122,0.15); color: var(--gray-dark); }
+
+.vehicle-item .vi-info {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;
+  font-size: 12px; color: var(--gray);
+}
+.vehicle-item .vi-info span { font-variant-numeric: tabular-nums; }
+
+/* Geofence settings */
+.geo-section { margin-bottom: 20px; }
+.geo-section h3 {
+  font-size: 14px; font-weight: 700; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.geo-section h3 .badge {
+  font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 10px;
+}
+.badge-load { background: rgba(241,196,15,0.2); color: var(--yellow); }
+.badge-dump { background: rgba(231,76,60,0.2); color: var(--red); }
+
+.geo-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.geo-form label {
+  font-size: 11px; color: var(--gray); display: block; margin-bottom: 3px;
+}
+.geo-form input {
+  width: 100%; background: var(--navy-mid); border: 1px solid var(--border);
+  color: var(--white); padding: 10px; border-radius: 8px; font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.geo-form input:focus { outline: none; border-color: var(--orange); }
+.geo-form .full { grid-column: 1 / -1; }
+.btn-geo {
+  padding: 10px 20px; border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.btn-geo-save { background: var(--orange); color: #fff; margin-top: 10px; }
+.btn-geo-save:hover { background: var(--orange-dark); }
+.btn-geo-clear { background: var(--navy-mid); color: var(--gray); margin-top: 10px; margin-left: 8px; }
+
+.geo-status {
+  margin-top: 12px; padding: 10px; background: var(--navy-mid);
+  border-radius: 8px; font-size: 12px; color: var(--gray);
+}
+.geo-status.active { border-left: 3px solid var(--green); color: var(--green); }
+
+/* Cycle history */
+.history-controls {
+  display: flex; gap: 8px; margin-bottom: 12px; align-items: center;
+}
+.btn-csv {
+  background: var(--green); color: #fff; border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.btn-csv:hover { background: var(--green-dark); }
+.btn-clear-history {
+  background: var(--navy-mid); color: var(--gray); border: none;
+  border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer;
+}
+.history-count { flex: 1; font-size: 13px; color: var(--gray); text-align: right; }
+
+.history-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.history-table th {
+  background: var(--navy-mid); color: var(--gray); padding: 8px 6px;
+  text-align: left; font-weight: 600; position: sticky; top: 0;
+  border-bottom: 1px solid var(--border);
+}
+.history-table td {
+  padding: 8px 6px; border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.history-table tr:hover td { background: var(--navy-mid); }
+
+.empty-state {
+  text-align: center; padding: 40px 20px; color: var(--gray);
+}
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 13px; line-height: 1.6; }
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .geo-form { grid-template-columns: 1fr; }
+  .history-table { font-size: 11px; }
+  .history-table th, .history-table td { padding: 6px 4px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== ROLE SELECT ===== -->
+<div id="roleSelect">
+  <h1>FleetTracker v2</h1>
+  <p>デバイスの役割を選択</p>
+  <div class="role-cards">
+    <div class="role-card" onclick="showGPS()">
+      <div class="icon">📱</div>
+      <h3>GPS送信モード</h3>
+      <p>iPhoneのSafariで位置を送信</p>
+    </div>
+    <div class="role-card" onclick="showDashboard()">
+      <div class="icon">🖥️</div>
+      <h3>ダッシュボード</h3>
+      <p>サイクルタイム計測・履歴管理</p>
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--gray-dark);margin-top:12px;">Supabase Tokyo | v2.0 Cycle Time</p>
+</div>
+
+<!-- ===== GPS SENDER ===== -->
+<div id="gpsSender" class="hidden">
+  <div class="sender-header">
+    <button class="back-btn" onclick="showRole()">←</button>
+    <h2>📱 GPS送信</h2>
+    <span id="gpsStatus" class="status-badge off"><span class="dot"></span>停止中</span>
+  </div>
+  <select id="vehicleId" class="vehicle-select">
+    <option value="dump-01">ダンプ01</option>
+    <option value="dump-02">ダンプ02</option>
+    <option value="dump-03">ダンプ03</option>
+    <option value="dump-04">ダンプ04</option>
+    <option value="dump-05">ダンプ05</option>
+    <option value="dump-06">ダンプ06</option>
+    <option value="dump-07">ダンプ07</option>
+    <option value="dump-08">ダンプ08</option>
+  </select>
+  <div class="sender-grid">
+    <div class="sender-stat"><label>緯度</label><div class="val" id="sLat">--</div></div>
+    <div class="sender-stat"><label>経度</label><div class="val" id="sLon">--</div></div>
+    <div class="sender-stat"><label>速度 (km/h)</label><div class="val" id="sSpd">--</div></div>
+    <div class="sender-stat"><label>送信回数</label><div class="val" id="sCnt">0</div></div>
+  </div>
+  <button id="btnGps" class="btn-send start" onclick="toggleGPS()">GPS送信を開始</button>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard" class="hidden">
+  <div class="dash-header">
+    <button class="back-btn" onclick="showRole()">←</button>
+    <span class="live-dot"></span>
+    <h2>FleetTracker</h2>
+    <span class="time" id="dashTime">--:--:--</span>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="tabVehicles" onclick="switchTab(this)">🚛 車両</button>
+    <button class="tab-btn" data-tab="tabGeofence" onclick="switchTab(this)">📍 ジオフェンス</button>
+    <button class="tab-btn" data-tab="tabHistory" onclick="switchTab(this)">📊 履歴</button>
+  </div>
+  <div class="tab-content">
+
+    <!-- Vehicle Tab -->
+    <div id="tabVehicles" class="tab-panel">
+      <div class="vehicle-count">接続台数: <strong id="vCount">0</strong>台 ｜ 最終受信: <span id="vLastRecv">--:--</span></div>
+      <div id="vehicleList">
+        <div class="empty-state">
+          <div class="icon">📡</div>
+          <p>データ待機中<br>スマホでGPS送信を開始してください</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Geofence Tab -->
+    <div id="tabGeofence" class="tab-panel hidden">
+      <div class="geo-section">
+        <h3>積込エリア <span class="badge badge-load">LOADING</span></h3>
+        <div class="geo-form">
+          <div><label>緯度</label><input type="number" step="0.000001" id="geoLoadLat" placeholder="34.XXXXXX"></div>
+          <div><label>経度</label><input type="number" step="0.000001" id="geoLoadLon" placeholder="132.XXXXXX"></div>
+          <div class="full"><label>半径 (m)</label><input type="number" id="geoLoadRadius" value="50" placeholder="50"></div>
+        </div>
+      </div>
+      <div class="geo-section">
+        <h3>荷降エリア <span class="badge badge-dump">DUMPING</span></h3>
+        <div class="geo-form">
+          <div><label>緯度</label><input type="number" step="0.000001" id="geoDumpLat" placeholder="34.XXXXXX"></div>
+          <div><label>経度</label><input type="number" step="0.000001" id="geoDumpLon" placeholder="132.XXXXXX"></div>
+          <div class="full"><label>半径 (m)</label><input type="number" id="geoDumpRadius" value="50" placeholder="50"></div>
+        </div>
+      </div>
+      <button class="btn-geo btn-geo-save" onclick="saveGeofence()">ジオフェンスを保存</button>
+      <button class="btn-geo btn-geo-clear" onclick="clearGeofence()">クリア</button>
+      <div id="geoStatusMsg" class="geo-status">未設定: 車両タブで状態は「offline」のまま表示されます</div>
+      <div style="margin-top:16px;padding:12px;background:var(--navy-mid);border-radius:8px;font-size:12px;color:var(--gray);line-height:1.6;">
+        <strong style="color:var(--white);">💡 設定ヒント</strong><br>
+        ①積込場所（バックホウ付近）と荷降場所（盛土・処分場）の中心座標を入力<br>
+        ②半径はダンプが場内に入ってから停車するまでの距離を目安に（通常30〜80m）<br>
+        ③Google Mapsで座標取得: 地点を長押し → 座標をコピー
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="tabHistory" class="tab-panel hidden">
+      <div class="history-controls">
+        <button class="btn-csv" onclick="exportCSV()">📥 CSV出力</button>
+        <button class="btn-clear-history" onclick="clearHistory()">🗑 クリア</button>
+        <span class="history-count"><span id="histCount">0</span>件</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>車両</th>
+              <th>サイクル#</th>
+              <th>積込開始</th>
+              <th>積込(分)</th>
+              <th>運搬(分)</th>
+              <th>荷降(分)</th>
+              <th>戻り(分)</th>
+              <th>合計(分)</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+          </tbody>
+        </table>
+      </div>
+      <div id="historyEmpty" class="empty-state">
+        <div class="icon">📊</div>
+        <p>サイクル履歴なし<br>ジオフェンス設定後、車両の移動で自動記録されます</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== SUPABASE CONFIG =====
+const SUPABASE_URL = 'https://jfzegcpfjvumxnsiumcu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmemVnY3BmanZ1bXhuc2l1bWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE5MzE5MDcsImV4cCI6MjA1NzUwNzkwN30.sb_publishable_fUesb_VIV5otkh_XctrCdQ_Ppgpw0q4';
+const TABLE = 'vehicle_positions';
+
+// ===== NAVIGATION =====
+function showRole() {
+  document.getElementById('roleSelect').classList.remove('hidden');
+  document.getElementById('gpsSender').classList.add('hidden');
+  document.getElementById('dashboard').classList.add('hidden');
+  stopGPS();
+  if (dashInterval) clearInterval(dashInterval);
+  if (realtimeSub) { realtimeSub.unsubscribe(); realtimeSub = null; }
+}
+function showGPS() {
+  document.getElementById('roleSelect').classList.add('hidden');
+  document.getElementById('gpsSender').classList.remove('hidden');
+}
+function showDashboard() {
+  document.getElementById('roleSelect').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  loadGeofenceFromStorage();
+  startDashboard();
+}
+
+// ===== TAB SWITCHING =====
+function switchTab(btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById(btn.dataset.tab).classList.remove('hidden');
+}
+
+// ===== GPS SENDER =====
+let gpsWatchId = null;
+let gpsSending = false;
+let gpsSendCount = 0;
+let gpsSendInterval = null;
+let lastLat = null, lastLon = null, lastSpd = null;
+
+function toggleGPS() {
+  if (!gpsSending) startGPS(); else stopGPS();
+}
+function startGPS() {
+  if (!navigator.geolocation) { alert('Geolocation非対応'); return; }
+  gpsSending = true;
+  const btn = document.getElementById('btnGps');
+  btn.textContent = 'GPS送信を停止';
+  btn.classList.remove('start'); btn.classList.add('stop');
+  const st = document.getElementById('gpsStatus');
+  st.className = 'status-badge on'; st.innerHTML = '<span class="dot"></span>送信中';
+
+  gpsWatchId = navigator.geolocation.watchPosition(
+    pos => {
+      lastLat = pos.coords.latitude;
+      lastLon = pos.coords.longitude;
+      lastSpd = pos.coords.speed != null ? (pos.coords.speed * 3.6) : 0;
+      document.getElementById('sLat').textContent = lastLat.toFixed(6);
+      document.getElementById('sLon').textContent = lastLon.toFixed(6);
+      document.getElementById('sSpd').textContent = lastSpd.toFixed(1);
+    },
+    err => console.error('GPS error:', err),
+    { enableHighAccuracy: true, maximumAge: 2000 }
+  );
+  gpsSendInterval = setInterval(sendPosition, 3000);
+}
+function stopGPS() {
+  gpsSending = false;
+  if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+  if (gpsSendInterval) { clearInterval(gpsSendInterval); gpsSendInterval = null; }
+  const btn = document.getElementById('btnGps');
+  btn.textContent = 'GPS送信を開始';
+  btn.classList.remove('stop'); btn.classList.add('start');
+  const st = document.getElementById('gpsStatus');
+  st.className = 'status-badge off'; st.innerHTML = '<span class="dot"></span>停止中';
+}
+async function sendPosition() {
+  if (lastLat === null) return;
+  const vid = document.getElementById('vehicleId').value;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        vehicle_id: vid,
+        latitude: lastLat,
+        longitude: lastLon,
+        speed: lastSpd || 0,
+        updated_at: new Date().toISOString()
+      })
+    });
+    if (res.ok) {
+      gpsSendCount++;
+      document.getElementById('sCnt').textContent = gpsSendCount;
+    }
+  } catch(e) { console.error('Send error:', e); }
+}
+
+// ===== DASHBOARD =====
+let dashInterval = null;
+let realtimeSub = null;
+let vehicles = {};
+let geofence = { load: null, dump: null };
+let cycleStates = {};   // vehicle_id -> { state, cycleNum, timestamps }
+let cycleHistory = [];
+let cycleCounter = {};  // vehicle_id -> count
+
+function startDashboard() {
+  updateDashClock();
+  dashInterval = setInterval(updateDashClock, 1000);
+  fetchVehicles();
+  subscribeRealtime();
+  setInterval(fetchVehicles, 5000);
+  loadHistoryFromStorage();
+  renderHistory();
+}
+
+function updateDashClock() {
+  const now = new Date();
+  document.getElementById('dashTime').textContent =
+    now.toLocaleTimeString('ja-JP', { hour12: false });
+}
+
+async function fetchVehicles() {
+  try {
+    // Get positions updated within last 60 seconds
+    const since = new Date(Date.now() - 60000).toISOString();
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/${TABLE}?updated_at=gte.${since}&order=vehicle_id`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    data.forEach(v => processVehicleUpdate(v));
+    renderVehicles();
+  } catch(e) { console.error('Fetch error:', e); }
+}
+
+function subscribeRealtime() {
+  // Supabase Realtime via WebSocket
+  const wsUrl = SUPABASE_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPABASE_KEY + '&vsn=1.0.0';
+  const ws = new WebSocket(wsUrl);
+  ws.onopen = () => {
+    // Join channel
+    ws.send(JSON.stringify({
+      topic: `realtime:public:${TABLE}`,
+      event: 'phx_join',
+      payload: { config: { broadcast: { self: false }, postgres_changes: [{ event: '*', schema: 'public', table: TABLE }] } },
+      ref: '1'
+    }));
+    // Heartbeat
+    setInterval(() => {
+      ws.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: 'hb' }));
+    }, 30000);
+  };
+  ws.onmessage = (msg) => {
+    try {
+      const data = JSON.parse(msg.data);
+      if (data.event === 'postgres_changes' && data.payload?.data?.record) {
+        processVehicleUpdate(data.payload.data.record);
+        renderVehicles();
+      }
+    } catch(e) {}
+  };
+  ws.onclose = () => { setTimeout(subscribeRealtime, 3000); };
+  realtimeSub = { unsubscribe: () => ws.close() };
+}
+
+function processVehicleUpdate(v) {
+  const vid = v.vehicle_id;
+  const now = Date.now();
+  vehicles[vid] = {
+    id: vid,
+    lat: v.latitude,
+    lon: v.longitude,
+    speed: v.speed || 0,
+    lastSeen: new Date(v.updated_at).getTime()
+  };
+  document.getElementById('vLastRecv').textContent =
+    new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  // ===== STATE MACHINE =====
+  if (!geofence.load || !geofence.dump) return;
+
+  const inLoad = isInsideGeofence(v.latitude, v.longitude, geofence.load);
+  const inDump = isInsideGeofence(v.latitude, v.longitude, geofence.dump);
+
+  if (!cycleStates[vid]) {
+    cycleStates[vid] = { state: 'waiting', cycleNum: 0, ts: {} };
+    cycleCounter[vid] = cycleCounter[vid] || 0;
+  }
+  const cs = cycleStates[vid];
+
+  switch (cs.state) {
+    case 'waiting':
+      if (inLoad) {
+        cs.state = 'loading';
+        cycleCounter[vid]++;
+        cs.cycleNum = cycleCounter[vid];
+        cs.ts = { loadStart: now };
+      }
+      break;
+    case 'loading':
+      if (!inLoad && !inDump) {
+        cs.state = 'hauling';
+        cs.ts.loadEnd = now;
+        cs.ts.haulStart = now;
+      }
+      break;
+    case 'hauling':
+      if (inDump) {
+        cs.state = 'dumping';
+        cs.ts.haulEnd = now;
+        cs.ts.dumpStart = now;
+      } else if (inLoad) {
+        // Went back to load area — reset
+        cs.state = 'loading';
+        cs.ts = { loadStart: now };
+      }
+      break;
+    case 'dumping':
+      if (!inDump && !inLoad) {
+        cs.state = 'returning';
+        cs.ts.dumpEnd = now;
+        cs.ts.returnStart = now;
+      }
+      break;
+    case 'returning':
+      if (inLoad) {
+        // Cycle complete!
+        cs.ts.returnEnd = now;
+        recordCycle(vid, cs);
+        cs.state = 'loading';
+        cycleCounter[vid]++;
+        cs.cycleNum = cycleCounter[vid];
+        cs.ts = { loadStart: now };
+      } else if (inDump) {
+        // Went back to dump — unusual but handle it
+        cs.state = 'dumping';
+        cs.ts.dumpStart = now;
+      }
+      break;
+  }
+}
+
+function isInsideGeofence(lat, lon, geo) {
+  if (!geo) return false;
+  const R = 6371000;
+  const dLat = (lat - geo.lat) * Math.PI / 180;
+  const dLon = (lon - geo.lon) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+    Math.cos(geo.lat * Math.PI/180) * Math.cos(lat * Math.PI/180) *
+    Math.sin(dLon/2)**2;
+  const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return dist <= geo.radius;
+}
+
+function recordCycle(vid, cs) {
+  const t = cs.ts;
+  const entry = {
+    vehicle: vid,
+    cycleNum: cs.cycleNum,
+    loadStart: new Date(t.loadStart).toLocaleTimeString('ja-JP', { hour12: false }),
+    loadMin: ((t.loadEnd - t.loadStart) / 60000).toFixed(1),
+    haulMin: ((t.haulEnd - t.haulStart) / 60000).toFixed(1),
+    dumpMin: ((t.dumpEnd - t.dumpStart) / 60000).toFixed(1),
+    returnMin: ((t.returnEnd - t.returnStart) / 60000).toFixed(1),
+    totalMin: ((t.returnEnd - t.loadStart) / 60000).toFixed(1),
+    date: new Date().toLocaleDateString('ja-JP')
+  };
+  cycleHistory.unshift(entry);
+  saveHistoryToStorage();
+  renderHistory();
+}
+
+function renderVehicles() {
+  const list = document.getElementById('vehicleList');
+  const active = Object.values(vehicles).filter(v => Date.now() - v.lastSeen < 30000);
+  document.getElementById('vCount').textContent = active.length;
+
+  if (active.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📡</div><p>データ待機中<br>スマホでGPS送信を開始してください</p></div>';
+    return;
+  }
+
+  list.innerHTML = active.map(v => {
+    const cs = cycleStates[v.id];
+    const state = cs ? cs.state : 'offline';
+    const stateLabel = { waiting:'待機中', loading:'積込中', hauling:'運搬中', dumping:'荷降中', returning:'戻り', offline:'未接続' };
+    const stateClass = `state-${state}`;
+    const elapsed = cs && cs.ts.loadStart
+      ? ((Date.now() - cs.ts.loadStart) / 60000).toFixed(1) + '分'
+      : '--';
+    return `
+      <div class="vehicle-item">
+        <div class="vi-header">
+          <span class="vi-name">🚛 ${v.id}</span>
+          <span class="vi-state ${stateClass}">${stateLabel[state] || state}</span>
+        </div>
+        <div class="vi-info">
+          <span>速度: ${v.speed.toFixed(0)} km/h</span>
+          <span>サイクル#${cs ? cs.cycleNum : 0}</span>
+          <span>経過: ${elapsed}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ===== GEOFENCE SETTINGS =====
+function saveGeofence() {
+  const loadLat = parseFloat(document.getElementById('geoLoadLat').value);
+  const loadLon = parseFloat(document.getElementById('geoLoadLon').value);
+  const loadR = parseFloat(document.getElementById('geoLoadRadius').value);
+  const dumpLat = parseFloat(document.getElementById('geoDumpLat').value);
+  const dumpLon = parseFloat(document.getElementById('geoDumpLon').value);
+  const dumpR = parseFloat(document.getElementById('geoDumpRadius').value);
+
+  if (isNaN(loadLat) || isNaN(loadLon) || isNaN(loadR)) {
+    alert('積込エリアの座標と半径を入力してください'); return;
+  }
+  if (isNaN(dumpLat) || isNaN(dumpLon) || isNaN(dumpR)) {
+    alert('荷降エリアの座標と半径を入力してください'); return;
+  }
+
+  geofence.load = { lat: loadLat, lon: loadLon, radius: loadR };
+  geofence.dump = { lat: dumpLat, lon: dumpLon, radius: dumpR };
+
+  localStorage.setItem('ft_geofence', JSON.stringify(geofence));
+
+  const msg = document.getElementById('geoStatusMsg');
+  msg.className = 'geo-status active';
+  msg.textContent = `✅ 設定済み ｜ 積込: (${loadLat.toFixed(4)}, ${loadLon.toFixed(4)}) R${loadR}m ／ 荷降: (${dumpLat.toFixed(4)}, ${dumpLon.toFixed(4)}) R${dumpR}m`;
+
+  // Reset all cycle states
+  cycleStates = {};
+}
+
+function clearGeofence() {
+  geofence = { load: null, dump: null };
+  localStorage.removeItem('ft_geofence');
+  ['geoLoadLat','geoLoadLon','geoLoadRadius','geoDumpLat','geoDumpLon','geoDumpRadius'].forEach(id => {
+    document.getElementById(id).value = id.includes('Radius') ? '50' : '';
+  });
+  const msg = document.getElementById('geoStatusMsg');
+  msg.className = 'geo-status';
+  msg.textContent = '未設定: 車両タブで状態は「offline」のまま表示されます';
+  cycleStates = {};
+}
+
+function loadGeofenceFromStorage() {
+  try {
+    const saved = localStorage.getItem('ft_geofence');
+    if (!saved) return;
+    const g = JSON.parse(saved);
+    if (g.load && g.dump) {
+      geofence = g;
+      document.getElementById('geoLoadLat').value = g.load.lat;
+      document.getElementById('geoLoadLon').value = g.load.lon;
+      document.getElementById('geoLoadRadius').value = g.load.radius;
+      document.getElementById('geoDumpLat').value = g.dump.lat;
+      document.getElementById('geoDumpLon').value = g.dump.lon;
+      document.getElementById('geoDumpRadius').value = g.dump.radius;
+      const msg = document.getElementById('geoStatusMsg');
+      msg.className = 'geo-status active';
+      msg.textContent = `✅ 設定済み ｜ 積込: (${g.load.lat.toFixed(4)}, ${g.load.lon.toFixed(4)}) R${g.load.radius}m ／ 荷降: (${g.dump.lat.toFixed(4)}, ${g.dump.lon.toFixed(4)}) R${g.dump.radius}m`;
+    }
+  } catch(e) {}
+}
+
+// ===== CYCLE HISTORY =====
+function renderHistory() {
+  const body = document.getElementById('historyBody');
+  const empty = document.getElementById('historyEmpty');
+  document.getElementById('histCount').textContent = cycleHistory.length;
+
+  if (cycleHistory.length === 0) {
+    body.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  body.innerHTML = cycleHistory.map(h => `
+    <tr>
+      <td>${h.vehicle}</td>
+      <td>${h.cycleNum}</td>
+      <td>${h.loadStart}</td>
+      <td>${h.loadMin}</td>
+      <td>${h.haulMin}</td>
+      <td>${h.dumpMin}</td>
+      <td>${h.returnMin}</td>
+      <td><strong>${h.totalMin}</strong></td>
+    </tr>
+  `).join('');
+}
+
+function saveHistoryToStorage() {
+  try { localStorage.setItem('ft_history', JSON.stringify(cycleHistory)); } catch(e) {}
+}
+function loadHistoryFromStorage() {
+  try {
+    const saved = localStorage.getItem('ft_history');
+    if (saved) cycleHistory = JSON.parse(saved);
+  } catch(e) {}
+}
+function clearHistory() {
+  if (!confirm('サイクル履歴をすべて削除しますか？')) return;
+  cycleHistory = [];
+  localStorage.removeItem('ft_history');
+  renderHistory();
+}
+
+// ===== CSV EXPORT =====
+function exportCSV() {
+  if (cycleHistory.length === 0) { alert('履歴がありません'); return; }
+  const header = '日付,車両,サイクル#,積込開始,積込(分),運搬(分),荷降(分),戻り(分),合計(分)\n';
+  const rows = cycleHistory.map(h =>
+    `${h.date},${h.vehicle},${h.cycleNum},${h.loadStart},${h.loadMin},${h.haulMin},${h.dumpMin},${h.returnMin},${h.totalMin}`
+  ).join('\n');
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cycle_time_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
