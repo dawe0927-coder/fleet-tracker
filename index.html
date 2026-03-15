@@ -32,6 +32,7 @@ body {
   background: var(--bg);
   color: var(--white);
   min-height: 100vh;
+  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 .hidden { display: none !important; }
@@ -159,40 +160,191 @@ body {
 .op-btn.sent .btn-label { color: var(--green); }
 
 /* ===== DASHBOARD ===== */
-#dashboard { height: 100vh; display: flex; flex-direction: column; }
-.dash-header {
-  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
-  background: var(--navy); border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+#dashboard {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
-.dash-header h2 { font-size: 16px; font-weight: 700; flex: 1; }
+.dash-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 14px;
+  background: var(--navy); border-bottom: 1px solid var(--border);
+  flex-shrink: 0; z-index: 1001; height: 42px;
+}
+.dash-header h2 { font-size: 15px; font-weight: 700; }
 .dash-header .live-dot {
   width: 8px; height: 8px; border-radius: 50%; background: var(--green);
   animation: pulse 1.5s infinite;
 }
-.dash-header .time { font-variant-numeric: tabular-nums; color: var(--gray); font-size: 13px; }
-
-/* Tab bar */
-.tab-bar {
-  display: flex; background: var(--navy); border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+.dash-tabs {
+  display: flex; gap: 2px; margin-left: auto; margin-right: 10px;
+  background: var(--navy-mid); border-radius: 6px; padding: 2px;
 }
-.tab-btn {
-  flex: 1; padding: 10px 4px; text-align: center; font-size: 12px;
-  font-weight: 600; color: var(--gray); background: none; border: none;
-  border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;
-  white-space: nowrap;
+.dash-tab {
+  padding: 4px 14px; border-radius: 5px; border: none;
+  background: transparent; color: var(--gray);
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
 }
-.tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+.dash-tab.active { background: var(--orange); color: #fff; }
+.dash-time { font-variant-numeric: tabular-nums; color: var(--gray); font-size: 13px; font-weight: 600; }
 
-/* Tab content */
-.tab-content { flex: 1; overflow-y: auto; position: relative; }
-.tab-panel { padding: 16px; }
-.tab-panel.hidden { display: none !important; }
+/* Main view */
+.dash-body { flex: 1; position: relative; overflow: hidden; }
+#mapContainer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; }
+.leaflet-container { background: var(--bg) !important; }
 
-/* Map panel */
-#tabMap { padding: 0; }
-#mapContainer { width: 100%; height: 100%; min-height: 400px; }
+/* Sidebar overlay */
+.map-sidebar {
+  position: absolute; top: 10px; left: 10px; bottom: 10px; width: 270px;
+  background: rgba(15,26,46,0.93); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px; border: 1px solid rgba(30,48,72,0.8);
+  z-index: 800; display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+.sidebar-toggle {
+  display: none; position: absolute; top: 10px; left: 10px; z-index: 801;
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  background: rgba(15,26,46,0.93); color: var(--white); font-size: 18px;
+  cursor: pointer; backdrop-filter: blur(16px);
+}
+
+/* Stats */
+.sidebar-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
+  background: var(--border); border-bottom: 1px solid var(--border);
+}
+.stat-item {
+  background: rgba(15,26,46,0.95); text-align: center; padding: 10px 4px;
+}
+.stat-value { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat-label { font-size: 9px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px; }
+
+/* Geofence section */
+.sidebar-geo {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+}
+.geo-section-title {
+  font-size: 10px; font-weight: 700; color: var(--gray); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 6px;
+}
+.geo-row {
+  display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px;
+}
+.geo-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.load-dot { background: var(--yellow); }
+.dump-dot { background: var(--red); }
+.geo-name { font-weight: 600; width: 42px; flex-shrink: 0; }
+.geo-coord { flex: 1; font-size: 10px; color: var(--gray); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.geo-pin-btn {
+  width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--navy-mid); cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.geo-pin-btn:hover { border-color: var(--orange); }
+.geo-pin-btn.setting {
+  background: var(--orange); border-color: var(--orange); animation: pulse 1s infinite;
+}
+.geo-radius-row {
+  display: flex; align-items: center; gap: 6px; padding: 4px 0 2px 16px; font-size: 11px; color: var(--gray);
+}
+.geo-radius-row input {
+  width: 60px; background: var(--navy-mid); border: 1px solid var(--border);
+  color: var(--white); padding: 4px 6px; border-radius: 4px; font-size: 12px;
+  text-align: center;
+}
+.geo-radius-row input:focus { outline: none; border-color: var(--orange); }
+.geo-hint {
+  font-size: 11px; color: var(--yellow); padding: 4px 0; animation: pulse 1.5s infinite;
+}
+.geo-actions {
+  display: flex; gap: 6px; padding-top: 4px;
+}
+.geo-clear-btn {
+  padding: 3px 10px; border-radius: 4px; border: 1px solid var(--gray-dark);
+  background: transparent; color: var(--gray); font-size: 10px; cursor: pointer;
+}
+.geo-clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* Vehicle list */
+.sidebar-veh-title {
+  padding: 8px 12px; font-size: 11px; font-weight: 700; color: var(--gray);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between;
+}
+.sidebar-vehicles {
+  flex: 1; overflow-y: auto; padding: 6px;
+}
+.sidebar-vehicles::-webkit-scrollbar { width: 3px; }
+.sidebar-vehicles::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.v-card {
+  padding: 8px 10px; border-radius: 8px; margin-bottom: 3px;
+  cursor: pointer; border: 1px solid transparent; transition: all 0.12s;
+  display: flex; align-items: center; gap: 8px;
+}
+.v-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(30,48,72,0.6); }
+.v-card.selected { background: rgba(232,124,62,0.1); border-color: var(--orange); }
+.v-card-name { font-size: 13px; font-weight: 700; }
+.v-card-state {
+  font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 8px;
+  margin-left: 4px;
+}
+.v-card-info { font-size: 10px; color: var(--gray); margin-top: 2px; }
+.v-card-right { margin-left: auto; text-align: right; }
+.v-card-time { font-size: 10px; color: var(--gray); font-variant-numeric: tabular-nums; }
+.v-card-age { font-size: 8px; color: var(--gray-dark); }
+
+.state-idle { background: rgba(52,152,219,0.15); color: var(--blue); }
+.state-hauling { background: rgba(232,124,62,0.15); color: var(--orange); }
+.state-dumping { background: rgba(231,76,60,0.15); color: var(--red); }
+.state-returning { background: rgba(0,188,212,0.15); color: var(--cyan); }
+.state-offline { background: rgba(90,106,122,0.15); color: var(--gray-dark); }
+
+.empty-vehicles {
+  text-align: center; padding: 24px 12px; color: var(--gray);
+}
+.empty-vehicles .ev-icon { font-size: 28px; margin-bottom: 8px; }
+.empty-vehicles p { font-size: 11px; line-height: 1.5; }
+
+/* Search bar */
+.map-search {
+  position: absolute; top: 10px; left: 290px; z-index: 800;
+  width: 320px; max-width: calc(100% - 300px);
+}
+.map-search input {
+  width: 100%; padding: 10px 40px 10px 14px;
+  border-radius: 10px; border: 1px solid rgba(30,48,72,0.8);
+  background: rgba(15,26,46,0.93); backdrop-filter: blur(16px);
+  color: var(--white); font-size: 13px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+.map-search input:focus { outline: none; border-color: var(--orange); }
+.map-search input::placeholder { color: var(--gray-dark); }
+.search-btn {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 30px; height: 30px; border-radius: 6px; border: none;
+  background: var(--orange); cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.search-results {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: rgba(15,26,46,0.97); border: 1px solid var(--border);
+  border-radius: 10px; margin-top: 4px; max-height: 200px; overflow-y: auto;
+  display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.search-results.show { display: block; }
+.search-result-item {
+  padding: 10px 14px; cursor: pointer; font-size: 12px;
+  border-bottom: 1px solid var(--border); transition: background 0.1s;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: rgba(232,124,62,0.1); }
+.search-result-name { font-weight: 600; margin-bottom: 2px; }
+.search-result-addr { font-size: 10px; color: var(--gray); }
 
 /* Map custom labels */
 .truck-label {
@@ -208,74 +360,15 @@ body {
 .geo-label-load { color: #f1c40f; border: 1px solid rgba(241,196,15,0.5); }
 .geo-label-dump { color: #e74c3c; border: 1px solid rgba(231,76,60,0.5); }
 
-/* Vehicle list */
-.vehicle-count { font-size: 13px; color: var(--gray); margin-bottom: 12px; }
-.vehicle-item {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 10px; padding: 14px; margin-bottom: 10px;
+/* History view */
+.history-view {
+  padding: 16px; max-width: 900px; margin: 0 auto;
+  height: 100%; display: flex; flex-direction: column;
+  background: var(--bg);
 }
-.vehicle-item .vi-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 8px;
-}
-.vehicle-item .vi-name { font-weight: 700; font-size: 15px; }
-.vehicle-item .vi-state {
-  font-size: 11px; font-weight: 600; padding: 3px 8px;
-  border-radius: 12px;
-}
-.state-idle { background: rgba(52,152,219,0.15); color: var(--blue); }
-.state-hauling { background: rgba(232,124,62,0.15); color: var(--orange); }
-.state-dumping { background: rgba(231,76,60,0.15); color: var(--red); }
-.state-returning { background: rgba(0,188,212,0.15); color: var(--cyan); }
-.state-offline { background: rgba(90,106,122,0.15); color: var(--gray-dark); }
-
-.vehicle-item .vi-info {
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;
-  font-size: 12px; color: var(--gray);
-}
-.vehicle-item .vi-info span { font-variant-numeric: tabular-nums; }
-
-/* Geofence settings */
-.geo-section { margin-bottom: 20px; }
-.geo-section h3 {
-  font-size: 14px; font-weight: 700; margin-bottom: 10px;
-  display: flex; align-items: center; gap: 8px;
-}
-.geo-section h3 .badge {
-  font-size: 10px; font-weight: 600; padding: 2px 8px;
-  border-radius: 10px;
-}
-.badge-load { background: rgba(241,196,15,0.2); color: var(--yellow); }
-.badge-dump { background: rgba(231,76,60,0.2); color: var(--red); }
-
-.geo-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.geo-form label {
-  font-size: 11px; color: var(--gray); display: block; margin-bottom: 3px;
-}
-.geo-form input {
-  width: 100%; background: var(--navy-mid); border: 1px solid var(--border);
-  color: var(--white); padding: 10px; border-radius: 8px; font-size: 14px;
-  font-variant-numeric: tabular-nums;
-}
-.geo-form input:focus { outline: none; border-color: var(--orange); }
-.geo-form .full { grid-column: 1 / -1; }
-.btn-geo {
-  padding: 10px 20px; border: none; border-radius: 8px;
-  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-}
-.btn-geo-save { background: var(--orange); color: #fff; margin-top: 10px; }
-.btn-geo-save:hover { background: var(--orange-dark); }
-.btn-geo-clear { background: var(--navy-mid); color: var(--gray); margin-top: 10px; margin-left: 8px; }
-
-.geo-status {
-  margin-top: 12px; padding: 10px; background: var(--navy-mid);
-  border-radius: 8px; font-size: 12px; color: var(--gray);
-}
-.geo-status.active { border-left: 3px solid var(--green); color: var(--green); }
-
-/* Cycle history */
 .history-controls {
   display: flex; gap: 8px; margin-bottom: 12px; align-items: center;
+  flex-shrink: 0;
 }
 .btn-csv {
   background: var(--green); color: #fff; border: none; border-radius: 8px;
@@ -287,7 +380,7 @@ body {
   border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer;
 }
 .history-count { flex: 1; font-size: 13px; color: var(--gray); text-align: right; }
-
+.history-scroll { flex: 1; overflow-y: auto; }
 .history-table {
   width: 100%; border-collapse: collapse; font-size: 12px;
 }
@@ -308,13 +401,22 @@ body {
 .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
 .empty-state p { font-size: 13px; line-height: 1.6; }
 
-/* Mobile adjustments */
-@media (max-width: 600px) {
-  .geo-form { grid-template-columns: 1fr; }
-  .history-table { font-size: 11px; }
-  .history-table th, .history-table td { padding: 6px 4px; }
+/* Mobile */
+@media (max-width: 768px) {
+  .map-sidebar { width: 220px; }
+  .map-search { left: 240px; width: 200px; max-width: calc(100% - 250px); }
   .operator-grid { grid-template-columns: repeat(3, 1fr); }
   .op-btn { min-height: 64px; font-size: 18px; }
+  .stat-value { font-size: 15px; }
+}
+@media (max-width: 480px) {
+  .map-sidebar {
+    width: calc(100% - 20px); bottom: auto; max-height: 45vh;
+    top: 10px; left: 10px; right: 10px;
+  }
+  .map-search { display: none; }
+  .sidebar-toggle { display: flex; }
+  .map-sidebar.collapsed { display: none; }
 }
 </style>
 </head>
@@ -341,7 +443,7 @@ body {
       <p>積込完了をダンプ車番で送信</p>
     </div>
   </div>
-  <p style="font-size:11px;color:var(--gray-dark);margin-top:12px;">Supabase Tokyo | v2.1 Operator + Map</p>
+  <p style="font-size:11px;color:var(--gray-dark);margin-top:12px;">Supabase Tokyo | v2.2</p>
 </div>
 
 <!-- ===== GPS SENDER ===== -->
@@ -401,75 +503,98 @@ body {
 
 <!-- ===== DASHBOARD ===== -->
 <div id="dashboard" class="hidden">
+  <!-- Header -->
   <div class="dash-header">
     <button class="back-btn" onclick="showRole()">←</button>
     <span class="live-dot"></span>
     <h2>FleetTracker</h2>
-    <span class="time" id="dashTime">--:--:--</span>
+    <div class="dash-tabs">
+      <button class="dash-tab active" id="tabMainBtn" onclick="switchDashView('main')">メイン</button>
+      <button class="dash-tab" id="tabHistBtn" onclick="switchDashView('history')">履歴</button>
+    </div>
+    <span class="dash-time" id="dashTime">--:--:--</span>
   </div>
-  <div class="tab-bar">
-    <button class="tab-btn active" data-tab="tabMap" onclick="switchTab(this)">🗺 地図</button>
-    <button class="tab-btn" data-tab="tabVehicles" onclick="switchTab(this)">🚛 車両</button>
-    <button class="tab-btn" data-tab="tabGeofence" onclick="switchTab(this)">📍 ジオフェンス</button>
-    <button class="tab-btn" data-tab="tabHistory" onclick="switchTab(this)">📊 履歴</button>
+
+  <!-- Main View: Full Map + Overlays -->
+  <div id="dashMain" class="dash-body">
+    <div id="mapContainer"></div>
+
+    <!-- Sidebar toggle (mobile) -->
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- Left Sidebar -->
+    <div class="map-sidebar" id="mapSidebar">
+      <!-- Stats -->
+      <div class="sidebar-stats">
+        <div class="stat-item">
+          <div class="stat-value" id="vCount" style="color:var(--green)">0</div>
+          <div class="stat-label">接続台数</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="cycleCount" style="color:var(--cyan)">0</div>
+          <div class="stat-label">サイクル</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="vLastRecv" style="color:var(--gray)">--:--</div>
+          <div class="stat-label">最終受信</div>
+        </div>
+      </div>
+
+      <!-- Geofence -->
+      <div class="sidebar-geo">
+        <div class="geo-section-title">ジオフェンス設定</div>
+        <div class="geo-row">
+          <span class="geo-dot load-dot"></span>
+          <span class="geo-name">積込場</span>
+          <span class="geo-coord" id="geoLoadDisplay">未設定</span>
+          <button class="geo-pin-btn" onclick="startGeoSet('load')" id="geoLoadBtn" title="地図クリックで設定">📌</button>
+        </div>
+        <div class="geo-row">
+          <span class="geo-dot dump-dot"></span>
+          <span class="geo-name">荷降場</span>
+          <span class="geo-coord" id="geoDumpDisplay">未設定</span>
+          <button class="geo-pin-btn" onclick="startGeoSet('dump')" id="geoDumpBtn" title="地図クリックで設定">📌</button>
+        </div>
+        <div class="geo-radius-row">
+          <label>荷降半径:</label>
+          <input type="number" id="geoDumpRadius" value="50" min="10" max="500">
+          <span>m</span>
+        </div>
+        <div class="geo-hint" id="geoHint" style="display:none">🎯 地図をクリックして設定</div>
+        <div class="geo-actions" id="geoActions" style="display:none">
+          <button class="geo-clear-btn" onclick="clearGeofence()">リセット</button>
+        </div>
+      </div>
+
+      <!-- Vehicle List -->
+      <div class="sidebar-veh-title">
+        車両一覧 <span id="vListCount">0台</span>
+      </div>
+      <div class="sidebar-vehicles" id="vehicleList">
+        <div class="empty-vehicles">
+          <div class="ev-icon">📡</div>
+          <p>データ待機中<br>スマホでGPS送信を開始</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="map-search" id="mapSearch">
+      <input type="text" id="searchInput" placeholder="住所・場所を検索..." onkeydown="if(event.key==='Enter')searchAddress()">
+      <button class="search-btn" onclick="searchAddress()">🔍</button>
+      <div class="search-results" id="searchResults"></div>
+    </div>
   </div>
-  <div class="tab-content">
 
-    <!-- Map Tab -->
-    <div id="tabMap" class="tab-panel">
-      <div id="mapContainer"></div>
-    </div>
-
-    <!-- Vehicle Tab -->
-    <div id="tabVehicles" class="tab-panel hidden">
-      <div class="vehicle-count">接続台数: <strong id="vCount">0</strong>台 ｜ 最終受信: <span id="vLastRecv">--:--</span></div>
-      <div id="vehicleList">
-        <div class="empty-state">
-          <div class="icon">📡</div>
-          <p>データ待機中<br>スマホでGPS送信を開始してください</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Geofence Tab -->
-    <div id="tabGeofence" class="tab-panel hidden">
-      <div class="geo-section">
-        <h3>積込エリア <span class="badge badge-load">LOADING</span></h3>
-        <p style="font-size:12px;color:var(--gray);margin-bottom:10px;">地図にバックホウアイコンを表示する位置（サイクル検知には使用しません）</p>
-        <div class="geo-form">
-          <div><label>緯度</label><input type="number" step="0.000001" id="geoLoadLat" placeholder="34.XXXXXX"></div>
-          <div><label>経度</label><input type="number" step="0.000001" id="geoLoadLon" placeholder="132.XXXXXX"></div>
-        </div>
-      </div>
-      <div class="geo-section">
-        <h3>荷降エリア <span class="badge badge-dump">DUMPING</span></h3>
-        <p style="font-size:12px;color:var(--gray);margin-bottom:10px;">サイクル検知に使用（ジオフェンス半径を設定）</p>
-        <div class="geo-form">
-          <div><label>緯度</label><input type="number" step="0.000001" id="geoDumpLat" placeholder="34.XXXXXX"></div>
-          <div><label>経度</label><input type="number" step="0.000001" id="geoDumpLon" placeholder="132.XXXXXX"></div>
-          <div class="full"><label>半径 (m)</label><input type="number" id="geoDumpRadius" value="50" placeholder="50"></div>
-        </div>
-      </div>
-      <button class="btn-geo btn-geo-save" onclick="saveGeofence()">ジオフェンスを保存</button>
-      <button class="btn-geo btn-geo-clear" onclick="clearGeofence()">クリア</button>
-      <div id="geoStatusMsg" class="geo-status">未設定: エリアの座標を入力してください</div>
-      <div style="margin-top:16px;padding:12px;background:var(--navy-mid);border-radius:8px;font-size:12px;color:var(--gray);line-height:1.6;">
-        <strong style="color:var(--white);">💡 設定ヒント</strong><br>
-        ①積込場所の座標 → 地図にバックホウアイコン表示<br>
-        ②荷降場所の座標＋半径 → サイクル検知＋地図にバックホウアイコン表示<br>
-        ③Google Mapsで座標取得: 地点を長押し → 座標をコピー<br>
-        ④積込完了はオペレーターモードのボタンで送信します
-      </div>
-    </div>
-
-    <!-- History Tab -->
-    <div id="tabHistory" class="tab-panel hidden">
+  <!-- History View -->
+  <div id="dashHistory" class="dash-body hidden">
+    <div class="history-view">
       <div class="history-controls">
         <button class="btn-csv" onclick="exportCSV()">📥 CSV出力</button>
         <button class="btn-clear-history" onclick="clearHistory()">🗑 クリア</button>
         <span class="history-count"><span id="histCount">0</span>件</span>
       </div>
-      <div style="overflow-x:auto;">
+      <div class="history-scroll">
         <table class="history-table">
           <thead>
             <tr>
@@ -482,8 +607,7 @@ body {
               <th>合計(分)</th>
             </tr>
           </thead>
-          <tbody id="historyBody">
-          </tbody>
+          <tbody id="historyBody"></tbody>
         </table>
       </div>
       <div id="historyEmpty" class="empty-state">
@@ -571,7 +695,6 @@ function showRole() {
   if (dashInterval) { clearInterval(dashInterval); dashInterval = null; }
   if (loadingPollInterval) { clearInterval(loadingPollInterval); loadingPollInterval = null; }
   if (vehiclePollInterval) { clearInterval(vehiclePollInterval); vehiclePollInterval = null; }
-  if (realtimeSub) { realtimeSub.unsubscribe(); realtimeSub = null; }
 }
 function showGPS() {
   document.getElementById('roleSelect').classList.add('hidden');
@@ -589,15 +712,25 @@ function showOperator() {
   initOperatorMode();
 }
 
-// ===== TAB SWITCHING =====
-function switchTab(btn) {
-  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-  btn.classList.add('active');
-  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.add('hidden'); });
-  document.getElementById(btn.dataset.tab).classList.remove('hidden');
-  if (btn.dataset.tab === 'tabMap' && map) {
-    setTimeout(function() { map.invalidateSize(); }, 100);
+// ===== DASH VIEW SWITCH =====
+function switchDashView(view) {
+  if (view === 'main') {
+    document.getElementById('dashMain').classList.remove('hidden');
+    document.getElementById('dashHistory').classList.add('hidden');
+    document.getElementById('tabMainBtn').classList.add('active');
+    document.getElementById('tabHistBtn').classList.remove('active');
+    if (map) setTimeout(function() { map.invalidateSize(); }, 100);
+  } else {
+    document.getElementById('dashMain').classList.add('hidden');
+    document.getElementById('dashHistory').classList.remove('hidden');
+    document.getElementById('tabMainBtn').classList.remove('active');
+    document.getElementById('tabHistBtn').classList.add('active');
+    renderHistory();
   }
+}
+
+function toggleSidebar() {
+  document.getElementById('mapSidebar').classList.toggle('collapsed');
 }
 
 // ===== GPS SENDER =====
@@ -638,10 +771,14 @@ function stopGPS() {
   if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
   if (gpsSendInterval) { clearInterval(gpsSendInterval); gpsSendInterval = null; }
   var btn = document.getElementById('btnGps');
-  btn.textContent = 'GPS送信を開始';
-  btn.classList.remove('stop'); btn.classList.add('start');
+  if (btn) {
+    btn.textContent = 'GPS送信を開始';
+    btn.classList.remove('stop'); btn.classList.add('start');
+  }
   var st = document.getElementById('gpsStatus');
-  st.className = 'status-badge off'; st.innerHTML = '<span class="dot"></span>停止中';
+  if (st) {
+    st.className = 'status-badge off'; st.innerHTML = '<span class="dot"></span>停止中';
+  }
 }
 function sendPosition() {
   if (lastLat === null) return;
@@ -704,9 +841,7 @@ function sendLoadingEvent(btn) {
     return;
   }
   localStorage.setItem('ft_operator_id', opId);
-
   btn.classList.add('sending');
-
   fetch(SUPABASE_URL + '/rest/v1/' + LOADING_TABLE, {
     method: 'POST',
     headers: {
@@ -714,10 +849,7 @@ function sendLoadingEvent(btn) {
       'apikey': SUPABASE_KEY,
       'Authorization': 'Bearer ' + SUPABASE_KEY
     },
-    body: JSON.stringify({
-      vehicle_id: vid,
-      operator_id: opId
-    })
+    body: JSON.stringify({ vehicle_id: vid, operator_id: opId })
   }).then(function(res) {
     if (res.ok) {
       btn.classList.remove('sending');
@@ -737,7 +869,6 @@ function sendLoadingEvent(btn) {
   }).catch(function(e) {
     btn.classList.remove('sending');
     alert('通信エラー');
-    console.error('Loading event error:', e);
   });
 }
 
@@ -747,7 +878,6 @@ function fetchTodayCount() {
   var mm = (today.getMonth() + 1 < 10 ? '0' : '') + (today.getMonth() + 1);
   var dd = (today.getDate() < 10 ? '0' : '') + today.getDate();
   var dateStr = yyyy + '-' + mm + '-' + dd + 'T00:00:00';
-
   fetch(SUPABASE_URL + '/rest/v1/' + LOADING_TABLE + '?created_at=gte.' + dateStr + '&select=id', {
     headers: {
       'apikey': SUPABASE_KEY,
@@ -771,7 +901,6 @@ function fetchTodayCount() {
 
 // ===== DASHBOARD =====
 var dashInterval = null;
-var realtimeSub = null;
 var vehiclePollInterval = null;
 var loadingPollInterval = null;
 var vehicles = {};
@@ -780,12 +909,14 @@ var cycleStates = {};
 var cycleHistory = [];
 var cycleCounter = {};
 var lastLoadingEventId = 0;
+var selectedVehicle = null;
 
 // ===== MAP =====
 var map = null;
 var vehicleMarkers = {};
 var geoMarkers = { load: null, dump: null };
 var dumpCircle = null;
+var geoSettingMode = null; // 'load' or 'dump' or null
 
 function initMap() {
   map = L.map('mapContainer', {
@@ -797,7 +928,59 @@ function initMap() {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     maxZoom: 19
   }).addTo(map);
+
+  // Map click for geofence setting
+  map.on('click', function(e) {
+    if (!geoSettingMode) return;
+    var lat = e.latlng.lat;
+    var lon = e.latlng.lng;
+
+    if (geoSettingMode === 'load') {
+      geofence.load = { lat: lat, lon: lon };
+      document.getElementById('geoLoadDisplay').textContent = lat.toFixed(5) + ', ' + lon.toFixed(5);
+    } else if (geoSettingMode === 'dump') {
+      var radius = parseFloat(document.getElementById('geoDumpRadius').value) || 50;
+      geofence.dump = { lat: lat, lon: lon, radius: radius };
+      document.getElementById('geoDumpDisplay').textContent = lat.toFixed(5) + ', ' + lon.toFixed(5);
+    }
+
+    // Save and update
+    localStorage.setItem('ft_geofence_v2', JSON.stringify(geofence));
+    updateGeoMarkers();
+    endGeoSet();
+    showGeoActions();
+
+    // Reset cycle states when geofence changes
+    cycleStates = {};
+    lastLoadingEventId = 0;
+    fetchLoadingEvents();
+  });
+
   updateGeoMarkers();
+}
+
+function startGeoSet(type) {
+  geoSettingMode = type;
+  var btn = document.getElementById(type === 'load' ? 'geoLoadBtn' : 'geoDumpBtn');
+  btn.classList.add('setting');
+  document.getElementById('geoHint').style.display = 'block';
+  map.getContainer().style.cursor = 'crosshair';
+}
+
+function endGeoSet() {
+  geoSettingMode = null;
+  document.getElementById('geoLoadBtn').classList.remove('setting');
+  document.getElementById('geoDumpBtn').classList.remove('setting');
+  document.getElementById('geoHint').style.display = 'none';
+  if (map) map.getContainer().style.cursor = '';
+}
+
+function showGeoActions() {
+  if (geofence.load || geofence.dump) {
+    document.getElementById('geoActions').style.display = 'flex';
+  } else {
+    document.getElementById('geoActions').style.display = 'none';
+  }
 }
 
 function updateGeoMarkers() {
@@ -859,8 +1042,8 @@ function updateVehicleMarkers() {
     offline: '#5a6a7a'
   };
   var active = Object.values(vehicles).filter(function(v) { return Date.now() - v.lastSeen < 120000; });
-
   var activeIds = {};
+
   active.forEach(function(v) {
     activeIds[v.id] = true;
     var cs = cycleStates[v.id];
@@ -876,7 +1059,17 @@ function updateVehicleMarkers() {
         icon: createTruckIcon(label, color),
         zIndexOffset: 1000
       }).addTo(map);
+      vehicleMarkers[v.id].on('click', function() { selectVehicle(v.id); });
     }
+
+    // Update popup
+    var stateLabel = { idle:'待機中', hauling:'運搬中', dumping:'荷降中', returning:'戻り' };
+    vehicleMarkers[v.id].bindPopup(
+      '<div style="font-size:13px;font-weight:700;margin-bottom:4px;">' + label + '</div>' +
+      '<div style="font-size:11px;">状態: ' + (stateLabel[state] || '---') + '</div>' +
+      '<div style="font-size:11px;">速度: ' + v.speed.toFixed(0) + ' km/h</div>',
+      { className: 'dark-popup', closeButton: false }
+    );
   });
 
   Object.keys(vehicleMarkers).forEach(function(vid) {
@@ -887,10 +1080,21 @@ function updateVehicleMarkers() {
   });
 }
 
+function selectVehicle(vid) {
+  selectedVehicle = vid;
+  var v = vehicles[vid];
+  if (v && map) {
+    map.panTo([v.lat, v.lon], { animate: true });
+    if (vehicleMarkers[vid]) vehicleMarkers[vid].openPopup();
+  }
+  renderVehicles();
+}
+
+// ===== DASHBOARD START =====
 function startDashboard() {
   updateDashClock();
   dashInterval = setInterval(updateDashClock, 1000);
-  if (!map) { initMap(); }
+  if (!map) { initMap(); } else { map.invalidateSize(); }
   fetchVehicles();
   vehiclePollInterval = setInterval(fetchVehicles, 5000);
   fetchLoadingEvents();
@@ -927,12 +1131,10 @@ function fetchLoadingEvents() {
   var mm = (today.getMonth() + 1 < 10 ? '0' : '') + (today.getMonth() + 1);
   var dd = (today.getDate() < 10 ? '0' : '') + today.getDate();
   var dateStr = yyyy + '-' + mm + '-' + dd + 'T00:00:00';
-
   var url = SUPABASE_URL + '/rest/v1/' + LOADING_TABLE + '?created_at=gte.' + dateStr + '&order=id.asc';
   if (lastLoadingEventId > 0) {
     url += '&id=gt.' + lastLoadingEventId;
   }
-
   fetch(url, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
   }).then(function(res) {
@@ -951,13 +1153,11 @@ function fetchLoadingEvents() {
 function processLoadingEvent(evt) {
   var vid = evt.vehicle_id;
   var evtTime = new Date(evt.created_at).getTime();
-
   if (!cycleStates[vid]) {
     cycleStates[vid] = { state: 'idle', cycleNum: 0, ts: {} };
     cycleCounter[vid] = 0;
   }
   var cs = cycleStates[vid];
-
   if (cs.state === 'idle' || cs.state === 'returning') {
     if (cs.state === 'returning' && cs.ts.loadComplete) {
       cs.ts.returnEnd = evtTime;
@@ -997,22 +1197,14 @@ function processVehiclePosition(v) {
 
   if (!geofence.dump) return;
   if (!cycleStates[vid]) return;
-
   var cs = cycleStates[vid];
   var inDump = isInsideGeofence(v.latitude, v.longitude, geofence.dump);
-
   switch (cs.state) {
     case 'hauling':
-      if (inDump) {
-        cs.state = 'dumping';
-        cs.ts.dumpStart = Date.now();
-      }
+      if (inDump) { cs.state = 'dumping'; cs.ts.dumpStart = Date.now(); }
       break;
     case 'dumping':
-      if (!inDump) {
-        cs.state = 'returning';
-        cs.ts.dumpEnd = Date.now();
-      }
+      if (!inDump) { cs.state = 'returning'; cs.ts.dumpEnd = Date.now(); }
       break;
   }
 }
@@ -1036,7 +1228,6 @@ function recordCycle(vid, cs) {
   var dumpMin = (t.dumpStart && t.dumpEnd) ? ((t.dumpEnd - t.dumpStart) / 60000).toFixed(1) : '--';
   var returnMin = (t.dumpEnd && t.returnEnd) ? ((t.returnEnd - t.dumpEnd) / 60000).toFixed(1) : '--';
   var totalMin = t.returnEnd ? ((t.returnEnd - t.loadComplete) / 60000).toFixed(1) : '--';
-
   var entry = {
     vehicle: vid,
     cycleNum: cs.cycleNum,
@@ -1052,87 +1243,60 @@ function recordCycle(vid, cs) {
   renderHistory();
 }
 
+// ===== VEHICLE LIST RENDERING =====
 function renderVehicles() {
   var list = document.getElementById('vehicleList');
   var active = Object.values(vehicles).filter(function(v) { return Date.now() - v.lastSeen < 120000; });
   document.getElementById('vCount').textContent = active.length;
+  document.getElementById('vListCount').textContent = active.length + '台';
+  document.getElementById('cycleCount').textContent = cycleHistory.length;
 
   if (active.length === 0) {
-    list.innerHTML = '<div class="empty-state"><div class="icon">📡</div><p>データ待機中<br>スマホでGPS送信を開始してください</p></div>';
+    list.innerHTML = '<div class="empty-vehicles"><div class="ev-icon">📡</div><p>データ待機中<br>スマホでGPS送信を開始</p></div>';
     return;
   }
+
+  var stateLabel = { idle:'待機中', hauling:'運搬中', dumping:'荷降中', returning:'戻り', offline:'未接続' };
 
   list.innerHTML = active.map(function(v) {
     var cs = cycleStates[v.id];
     var state = cs ? cs.state : 'offline';
-    var stateLabel = { idle:'待機中', hauling:'運搬中', dumping:'荷降中', returning:'戻り', offline:'未接続' };
     var stateClass = 'state-' + state;
+    var label = v.id.replace('dump-', 'D-');
+    var age = Date.now() - v.lastSeen;
+    var ageStr = age < 10000 ? '今' : age < 60000 ? Math.round(age/1000) + '秒前' : Math.round(age/60000) + '分前';
     var elapsed = '--';
     if (cs && cs.ts.loadComplete) {
       elapsed = ((Date.now() - cs.ts.loadComplete) / 60000).toFixed(1) + '分';
     }
-    return '<div class="vehicle-item">' +
-      '<div class="vi-header">' +
-        '<span class="vi-name">🚛 ' + v.id + '</span>' +
-        '<span class="vi-state ' + stateClass + '">' + (stateLabel[state] || state) + '</span>' +
+    var isSelected = selectedVehicle === v.id ? ' selected' : '';
+
+    return '<div class="v-card' + isSelected + '" onclick="selectVehicle(\'' + v.id + '\')">' +
+      '<div>' +
+        '<div><span class="v-card-name">' + label + '</span>' +
+        '<span class="v-card-state ' + stateClass + '">' + (stateLabel[state] || state) + '</span></div>' +
+        '<div class="v-card-info">' + v.speed.toFixed(0) + ' km/h ・ #' + (cs ? cs.cycleNum : 0) + ' ・ ' + elapsed + '</div>' +
       '</div>' +
-      '<div class="vi-info">' +
-        '<span>速度: ' + v.speed.toFixed(0) + ' km/h</span>' +
-        '<span>サイクル#' + (cs ? cs.cycleNum : 0) + '</span>' +
-        '<span>経過: ' + elapsed + '</span>' +
+      '<div class="v-card-right">' +
+        '<div class="v-card-time">' + new Date(v.lastSeen).toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}) + '</div>' +
+        '<div class="v-card-age">' + ageStr + '</div>' +
       '</div>' +
     '</div>';
   }).join('');
 }
 
 // ===== GEOFENCE SETTINGS =====
-function saveGeofence() {
-  var loadLat = parseFloat(document.getElementById('geoLoadLat').value);
-  var loadLon = parseFloat(document.getElementById('geoLoadLon').value);
-  var dumpLat = parseFloat(document.getElementById('geoDumpLat').value);
-  var dumpLon = parseFloat(document.getElementById('geoDumpLon').value);
-  var dumpR = parseFloat(document.getElementById('geoDumpRadius').value);
-
-  if (isNaN(dumpLat) || isNaN(dumpLon) || isNaN(dumpR)) {
-    alert('荷降エリアの座標と半径を入力してください'); return;
-  }
-
-  if (!isNaN(loadLat) && !isNaN(loadLon)) {
-    geofence.load = { lat: loadLat, lon: loadLon };
-  } else {
-    geofence.load = null;
-  }
-  geofence.dump = { lat: dumpLat, lon: dumpLon, radius: dumpR };
-
-  localStorage.setItem('ft_geofence_v2', JSON.stringify(geofence));
-
-  var msg = document.getElementById('geoStatusMsg');
-  msg.className = 'geo-status active';
-  var txt = '✅ 設定済み ｜ 荷降: (' + dumpLat.toFixed(4) + ', ' + dumpLon.toFixed(4) + ') R' + dumpR + 'm';
-  if (geofence.load) {
-    txt += ' ／ 積込: (' + loadLat.toFixed(4) + ', ' + loadLon.toFixed(4) + ')';
-  }
-  msg.textContent = txt;
-
-  cycleStates = {};
-  lastLoadingEventId = 0;
-  fetchLoadingEvents();
-  updateGeoMarkers();
-}
-
 function clearGeofence() {
   geofence = { load: null, dump: null };
   localStorage.removeItem('ft_geofence_v2');
-  document.getElementById('geoLoadLat').value = '';
-  document.getElementById('geoLoadLon').value = '';
-  document.getElementById('geoDumpLat').value = '';
-  document.getElementById('geoDumpLon').value = '';
+  document.getElementById('geoLoadDisplay').textContent = '未設定';
+  document.getElementById('geoDumpDisplay').textContent = '未設定';
   document.getElementById('geoDumpRadius').value = '50';
-  var msg = document.getElementById('geoStatusMsg');
-  msg.className = 'geo-status';
-  msg.textContent = '未設定: エリアの座標を入力してください';
   cycleStates = {};
+  lastLoadingEventId = 0;
   updateGeoMarkers();
+  endGeoSet();
+  showGeoActions();
 }
 
 function loadGeofenceFromStorage() {
@@ -1142,38 +1306,90 @@ function loadGeofenceFromStorage() {
     var g = JSON.parse(saved);
     geofence = g;
     if (g.load) {
-      document.getElementById('geoLoadLat').value = g.load.lat;
-      document.getElementById('geoLoadLon').value = g.load.lon;
+      document.getElementById('geoLoadDisplay').textContent = g.load.lat.toFixed(5) + ', ' + g.load.lon.toFixed(5);
     }
     if (g.dump) {
-      document.getElementById('geoDumpLat').value = g.dump.lat;
-      document.getElementById('geoDumpLon').value = g.dump.lon;
+      document.getElementById('geoDumpDisplay').textContent = g.dump.lat.toFixed(5) + ', ' + g.dump.lon.toFixed(5);
       document.getElementById('geoDumpRadius').value = g.dump.radius;
     }
-    var msg = document.getElementById('geoStatusMsg');
-    if (g.dump) {
-      msg.className = 'geo-status active';
-      var txt = '✅ 設定済み ｜ 荷降: (' + g.dump.lat.toFixed(4) + ', ' + g.dump.lon.toFixed(4) + ') R' + g.dump.radius + 'm';
-      if (g.load) {
-        txt += ' ／ 積込: (' + g.load.lat.toFixed(4) + ', ' + g.load.lon.toFixed(4) + ')';
-      }
-      msg.textContent = txt;
-    }
+    showGeoActions();
   } catch(e) {}
 }
+
+// Update dump radius when changed
+document.addEventListener('DOMContentLoaded', function() {
+  var radiusInput = document.getElementById('geoDumpRadius');
+  if (radiusInput) {
+    radiusInput.addEventListener('change', function() {
+      if (geofence.dump) {
+        geofence.dump.radius = parseFloat(this.value) || 50;
+        localStorage.setItem('ft_geofence_v2', JSON.stringify(geofence));
+        updateGeoMarkers();
+        cycleStates = {};
+        lastLoadingEventId = 0;
+        fetchLoadingEvents();
+      }
+    });
+  }
+});
+
+// ===== ADDRESS SEARCH =====
+function searchAddress() {
+  var query = document.getElementById('searchInput').value.trim();
+  if (!query) return;
+
+  var resultsDiv = document.getElementById('searchResults');
+  resultsDiv.innerHTML = '<div class="search-result-item"><span style="color:var(--gray)">検索中...</span></div>';
+  resultsDiv.classList.add('show');
+
+  fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(query) + '&format=json&countrycodes=jp&limit=5&accept-language=ja', {
+    headers: { 'Accept': 'application/json' }
+  }).then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (!data || data.length === 0) {
+      resultsDiv.innerHTML = '<div class="search-result-item"><span style="color:var(--gray)">結果なし</span></div>';
+      return;
+    }
+    resultsDiv.innerHTML = data.map(function(item) {
+      return '<div class="search-result-item" onclick="goToSearchResult(' + item.lat + ',' + item.lon + ')">' +
+        '<div class="search-result-name">' + (item.name || item.display_name.split(',')[0]) + '</div>' +
+        '<div class="search-result-addr">' + item.display_name + '</div>' +
+      '</div>';
+    }).join('');
+  }).catch(function(e) {
+    resultsDiv.innerHTML = '<div class="search-result-item"><span style="color:var(--red)">検索エラー</span></div>';
+  });
+}
+
+function goToSearchResult(lat, lon) {
+  document.getElementById('searchResults').classList.remove('show');
+  document.getElementById('searchInput').value = '';
+  if (map) {
+    map.setView([lat, lon], 16, { animate: true });
+  }
+}
+
+// Close search results when clicking elsewhere
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.map-search')) {
+    var r = document.getElementById('searchResults');
+    if (r) r.classList.remove('show');
+  }
+});
 
 // ===== CYCLE HISTORY =====
 function renderHistory() {
   var body = document.getElementById('historyBody');
   var empty = document.getElementById('historyEmpty');
+  if (!body) return;
   document.getElementById('histCount').textContent = cycleHistory.length;
 
   if (cycleHistory.length === 0) {
     body.innerHTML = '';
-    empty.classList.remove('hidden');
+    if (empty) empty.classList.remove('hidden');
     return;
   }
-  empty.classList.add('hidden');
+  if (empty) empty.classList.add('hidden');
   body.innerHTML = cycleHistory.map(function(h) {
     return '<tr>' +
       '<td>' + h.vehicle + '</td>' +
