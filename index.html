@@ -11,415 +11,449 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
 
-/* Mode select */
-#modesel{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:20px;padding:20px}
-#modesel h1{font-size:26px;font-weight:900}
-#modesel h1 span{color:var(--cyan)}
+#modesel{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:16px;padding:20px}
+#modesel h1{font-size:26px;font-weight:900}#modesel h1 span{color:var(--cyan)}
 #modesel p{color:var(--text2);font-size:13px;text-align:center;max-width:340px}
-.mbtn{width:100%;max-width:300px;padding:18px;border-radius:12px;border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:left;transition:all .2s;color:var(--text)}
+.mbtn{width:100%;max-width:300px;padding:16px;border-radius:12px;border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:left;transition:all .2s;color:var(--text)}
 .mbtn:active{border-color:var(--cyan);transform:scale(.98)}
-.mbtn-i{font-size:28px;margin-bottom:6px}
-.mbtn-t{font-size:15px;font-weight:700;margin-bottom:3px}
-.mbtn-d{font-size:11px;color:var(--text2)}
+.mbtn-i{font-size:24px;margin-bottom:4px}.mbtn-t{font-size:14px;font-weight:700;margin-bottom:2px}.mbtn-d{font-size:10px;color:var(--text2)}
 
-/* ===== SENDER ===== */
+/* Sender */
 #sender{display:none;flex-direction:column;height:100vh}
-.s-head{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.s-head h2{font-size:15px;font-weight:700}
-.s-status{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
-.s-dot{width:7px;height:7px;border-radius:50%}
-.s-dot.on{background:var(--green);animation:p 2s infinite}
-.s-dot.off{background:var(--red)}
+.sh{padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sh h2{font-size:14px;font-weight:700}
+.ss{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600}
+.sd{width:7px;height:7px;border-radius:50%}.sd.on{background:var(--green);animation:p 2s infinite}.sd.off{background:var(--red)}
 @keyframes p{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 5px rgba(16,185,129,0)}}
-.s-map{flex:1}
-#smap{width:100%;height:100%}
-.s-panel{padding:14px 16px;background:var(--bg2);border-top:1px solid var(--border)}
-.s-chips{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.s-chip{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2)}
-.s-chip.on{background:var(--cyan);border-color:var(--cyan);color:#fff}
-.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
-.s-item{background:var(--card);border-radius:6px;padding:6px 10px;border:1px solid var(--border)}
-.s-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.s-val{font-family:monospace;font-size:15px;font-weight:700;margin-top:1px}
-.s-btn{width:100%;padding:13px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;color:#fff;transition:all .2s}
-.s-btn.go{background:var(--green)}.s-btn.stop{background:var(--red)}
-.s-msg{font-size:11px;color:var(--amber);margin-top:8px;text-align:center;display:none}
+.sm{flex:1}#smap{width:100%;height:100%}
+.sp{padding:12px 14px;background:var(--bg2);border-top:1px solid var(--border)}
+.sc{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap}
+.sch{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:600;cursor:pointer;color:var(--text2)}
+.sch.on{background:var(--cyan);border-color:var(--cyan);color:#fff}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
+.si{background:var(--card);border-radius:5px;padding:5px 8px;border:1px solid var(--border)}
+.sl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.sv{font-family:monospace;font-size:14px;font-weight:700;margin-top:1px}
+.sb{width:100%;padding:12px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;color:#fff}
+.sb.go{background:var(--green)}.sb.stop{background:var(--red)}
+.smsg{font-size:10px;color:var(--amber);margin-top:6px;text-align:center;display:none}
 
-/* ===== DASHBOARD ===== */
+/* Dashboard */
 #dash{display:none;height:100vh;flex-direction:column}
-.d-head{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:46px;background:var(--bg2);border-bottom:1px solid var(--border)}
-.d-logo{font-size:14px;font-weight:900}.d-logo span{color:var(--cyan)}
-.d-live{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--green)}
-.d-clock{font-family:monospace;font-size:12px;font-weight:600}
-.d-body{display:flex;flex:1;overflow:hidden}
-.d-side{width:300px;min-width:300px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
-.d-stats{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:8px;border-bottom:1px solid var(--border)}
-.d-stat{background:var(--card);border-radius:6px;padding:6px 8px;border:1px solid var(--border)}
-.d-stat-l{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-.d-stat-v{font-family:monospace;font-size:17px;font-weight:700}
-.d-stat-u{font-size:9px;color:var(--text2)}
-.d-lh{padding:6px 10px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text2)}
-.d-list{flex:1;overflow-y:auto;padding:3px}
-.d-list::-webkit-scrollbar{width:3px}.d-list::-webkit-scrollbar-thumb{background:var(--border)}
-.d-vi{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;cursor:pointer;border:1px solid transparent;margin-bottom:1px}
-.d-vi:hover{background:var(--card)}.d-vi.sel{background:var(--card);border-color:var(--cyan)}
-.d-vi-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
-.d-vi-nm{font-size:11px;font-weight:600}
-.d-vi-tag{font-size:7px;font-weight:700;padding:1px 4px;border-radius:2px}
-.d-vi-det{font-size:9px;color:var(--muted)}
-.d-vi-rt{margin-left:auto;text-align:right}
-.d-vi-tm{font-family:monospace;font-size:9px;color:var(--text2)}
-.d-mapw{flex:1;position:relative}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:0 14px;height:42px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.dl{font-size:13px;font-weight:900}.dl span{color:var(--cyan)}
+.dli{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--green)}
+.dck{font-family:monospace;font-size:11px;font-weight:600}
+.db{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar with tabs */
+.ds{width:320px;min-width:320px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.dtabs{display:flex;border-bottom:1px solid var(--border)}
+.dtab{flex:1;padding:7px;text-align:center;font-size:10px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .15s}
+.dtab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+.dtpanel{flex:1;overflow-y:auto;display:none}
+.dtpanel.on{display:flex;flex-direction:column}
+.dtpanel::-webkit-scrollbar{width:3px}.dtpanel::-webkit-scrollbar-thumb{background:var(--border)}
+
+/* Stats */
+.dst{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:6px 8px;border-bottom:1px solid var(--border)}
+.ds1{background:var(--card);border-radius:5px;padding:5px 7px;border:1px solid var(--border)}
+.ds1l{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.ds1v{font-family:monospace;font-size:16px;font-weight:700}
+.ds1u{font-size:8px;color:var(--text2)}
+
+.dlh{padding:5px 8px;border-bottom:1px solid var(--border);font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text2)}
+.dvl{flex:1;overflow-y:auto;padding:2px}
+.dv{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:5px;cursor:pointer;border:1px solid transparent;margin-bottom:1px;font-size:10px}
+.dv:hover{background:var(--card)}.dv.sel{background:var(--card);border-color:var(--cyan)}
+.dvi{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.dvn{font-weight:600;font-size:10px}.dvtg{font-size:7px;font-weight:700;padding:1px 3px;border-radius:2px}
+.dvd{font-size:8px;color:var(--muted)}.dvr{margin-left:auto;text-align:right}
+.dvt{font-family:monospace;font-size:8px;color:var(--text2)}
+
+/* Cycle panel */
+.cyc-summary{padding:8px;border-bottom:1px solid var(--border)}
+.cyc-title{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.cyc-bars{display:flex;flex-direction:column;gap:3px}
+.cyc-row{display:flex;align-items:center;gap:6px;font-size:9px}
+.cyc-lbl{width:48px;text-align:right;color:var(--text2);font-weight:500}
+.cyc-track{flex:1;height:14px;background:var(--bg);border-radius:3px;overflow:hidden}
+.cyc-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:4px;font-family:monospace;font-size:8px;font-weight:600;color:#fff;transition:width .5s}
+
+.cyc-table{padding:6px 8px}
+.cyc-table table{width:100%;border-collapse:collapse;font-size:9px}
+.cyc-table th{text-align:left;padding:3px 4px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600}
+.cyc-table td{padding:3px 4px;border-bottom:1px solid rgba(42,53,80,.3);font-family:monospace}
+.cyc-table tr:hover{background:var(--card)}
+
+.csv-btn{margin:6px 8px;padding:7px;border-radius:6px;border:1px solid var(--cyan);background:transparent;color:var(--cyan);font-size:10px;font-weight:700;cursor:pointer;text-align:center}
+.csv-btn:active{background:var(--cyan);color:#fff}
+
+/* Map */
+.dmw{flex:1;position:relative}
 #dmap{width:100%;height:100%}
 .leaflet-container{background:var(--bg)!important}
-.d-det{position:absolute;top:8px;right:8px;z-index:999;width:220px;background:rgba(17,24,39,.94);backdrop-filter:blur(10px);border-radius:8px;border:1px solid var(--border);display:none}
-.d-det.vis{display:block}
-.d-det-h{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--border)}
-.d-det-t{font-size:13px;font-weight:700}
-.d-det-x{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer}
-.d-det-b{padding:8px 10px}
-.d-det-r{display:flex;justify-content:space-between;padding:2px 0;font-size:10px}
-.d-det-rl{color:var(--muted)}.d-det-rv{font-family:monospace;font-weight:600}
-.d-nodata{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:998;background:rgba(17,24,39,.9);padding:20px 28px;border-radius:10px;border:1px solid var(--border);text-align:center}
-.d-nodata h3{font-size:15px;margin-bottom:6px}.d-nodata p{font-size:11px;color:var(--text2);max-width:260px}
-.t-label{background:rgba(10,14,23,.85);padding:1px 4px;border-radius:2px;font-family:monospace;font-size:8px;font-weight:600;color:#fff;white-space:nowrap}
-.t-dot{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:10px;font-weight:800;color:#fff}
-@media(max-width:768px){.d-side{width:220px;min-width:220px}}
+.ddt{position:absolute;top:8px;right:8px;z-index:999;width:200px;background:rgba(17,24,39,.94);backdrop-filter:blur(10px);border-radius:7px;border:1px solid var(--border);display:none}
+.ddt.vis{display:block}
+.ddth{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid var(--border)}
+.ddtt{font-size:12px;font-weight:700}
+.ddtx{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer}
+.ddtb{padding:6px 8px}
+.ddtr{display:flex;justify-content:space-between;padding:2px 0;font-size:9px}
+.ddtrl{color:var(--muted)}.ddtrv{font-family:monospace;font-weight:600}
+
+/* Geofence setup */
+.geo-bar{position:absolute;top:8px;left:8px;z-index:999;background:rgba(17,24,39,.92);backdrop-filter:blur(10px);border-radius:7px;border:1px solid var(--border);padding:8px 10px;max-width:240px}
+.geo-title{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.geo-item{display:flex;align-items:center;gap:5px;font-size:10px;margin-bottom:3px}
+.geo-dot{width:10px;height:10px;border-radius:50%;border:2px solid}
+.geo-name{font-weight:600}.geo-coord{font-family:monospace;font-size:8px;color:var(--text2)}
+.geo-hint{font-size:8px;color:var(--amber);margin-top:4px}
+.geo-setbtn{padding:4px 8px;border-radius:4px;border:1px solid;font-size:9px;font-weight:600;cursor:pointer;background:transparent}
+
+.nodata{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:998;background:rgba(17,24,39,.9);padding:18px 24px;border-radius:10px;border:1px solid var(--border);text-align:center}
+.nodata h3{font-size:14px;margin-bottom:4px}.nodata p{font-size:10px;color:var(--text2);max-width:240px}
+
+.tl{background:rgba(10,14,23,.85);padding:1px 3px;border-radius:2px;font-family:monospace;font-size:7px;font-weight:600;color:#fff;white-space:nowrap}
+.td{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:9px;font-weight:800;color:#fff}
+.gl{background:rgba(17,24,39,.85);border:1px solid;border-radius:4px;padding:2px 5px;font-size:8px;font-weight:600;white-space:nowrap}
+
+@media(max-width:768px){.ds{width:240px;min-width:240px}}
 </style>
 </head>
 <body>
 
-<!-- ===== CONFIG ===== -->
 <script>
-const SUPABASE_URL = 'https://jfzegcpfjvumxnsiumcu.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_fUesb_VIV5otkh_XctrCdQ_Ppgpw0q4';
-const API = SUPABASE_URL + '/rest/v1';
-const HEADERS = {
-  'apikey': SUPABASE_KEY,
-  'Authorization': 'Bearer ' + SUPABASE_KEY,
-  'Content-Type': 'application/json',
-  'Prefer': 'return=minimal'
-};
+const SUPABASE_URL='https://jfzegcpfjvumxnsiumcu.supabase.co';
+const SUPABASE_KEY='sb_publishable_fUesb_VIV5otkh_XctrCdQ_Ppgpw0q4';
+const API=SUPABASE_URL+'/rest/v1';
+const H={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'};
+const HR={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
 </script>
 
-<!-- MODE SELECT -->
 <div id="modesel">
   <h1><span>Fleet</span>Tracker</h1>
   <p>デバイスの役割を選択</p>
-  <button class="mbtn" onclick="openSender()">
-    <div class="mbtn-i">📱</div>
-    <div class="mbtn-t">GPS送信モード</div>
-    <div class="mbtn-d">スマホのGPSで位置を送信。iPhoneのSafariで開いてください。</div>
-  </button>
-  <button class="mbtn" onclick="openDash()">
-    <div class="mbtn-i">🖥️</div>
-    <div class="mbtn-t">ダッシュボード</div>
-    <div class="mbtn-d">全車両の位置をリアルタイム表示。PCで閲覧。</div>
-  </button>
-  <p style="font-size:10px;color:var(--muted);margin-top:12px">接続先: Supabase (Tokyo)</p>
+  <button class="mbtn" onclick="openSender()"><div class="mbtn-i">📱</div><div class="mbtn-t">GPS送信モード</div><div class="mbtn-d">iPhoneのSafariで開いてください</div></button>
+  <button class="mbtn" onclick="openDash()"><div class="mbtn-i">🖥️</div><div class="mbtn-t">ダッシュボード</div><div class="mbtn-d">全車両の位置＋サイクルタイム自動計測</div></button>
 </div>
 
-<!-- SENDER -->
+<!-- SENDER (unchanged) -->
 <div id="sender">
-  <div class="s-head">
-    <h2>📱 GPS送信</h2>
-    <div class="s-status"><div class="s-dot off" id="sdot"></div><span id="stxt">停止中</span></div>
-  </div>
-  <div class="s-map"><div id="smap"></div></div>
-  <div class="s-panel">
-    <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:5px">車両選択</div>
-    <div class="s-chips" id="schips"></div>
-    <div class="s-grid">
-      <div class="s-item"><div class="s-lbl">緯度</div><div class="s-val" id="slat">--</div></div>
-      <div class="s-item"><div class="s-lbl">経度</div><div class="s-val" id="slng">--</div></div>
-      <div class="s-item"><div class="s-lbl">速度</div><div class="s-val" id="sspd">--</div></div>
-      <div class="s-item"><div class="s-lbl">送信回数</div><div class="s-val" id="scnt">0</div></div>
+  <div class="sh"><h2>📱 GPS送信</h2><div class="ss"><div class="sd off" id="sdot"></div><span id="stxt">停止中</span></div></div>
+  <div class="sm"><div id="smap"></div></div>
+  <div class="sp">
+    <div style="font-size:9px;font-weight:600;color:var(--muted);margin-bottom:4px">車両選択</div>
+    <div class="sc" id="schips"></div>
+    <div class="sg">
+      <div class="si"><div class="sl">緯度</div><div class="sv" id="slat">--</div></div>
+      <div class="si"><div class="sl">経度</div><div class="sv" id="slng">--</div></div>
+      <div class="si"><div class="sl">速度</div><div class="sv" id="sspd">--</div></div>
+      <div class="si"><div class="sl">送信回数</div><div class="sv" id="scnt">0</div></div>
     </div>
-    <button class="s-btn go" id="sbtn" onclick="toggleGPS()">GPS送信を開始</button>
-    <div class="s-msg" id="smsg"></div>
+    <button class="sb go" id="sbtn" onclick="toggleGPS()">GPS送信を開始</button>
+    <div class="smsg" id="smsg"></div>
   </div>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dash">
-  <div class="d-head">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="d-logo"><span>Fleet</span>Tracker</div>
-      <div class="d-live"><div class="s-dot on"></div>LIVE</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <div style="font-size:10px;color:var(--text2)">3秒更新</div>
-      <div class="d-clock" id="dclock">--:--:--</div>
-    </div>
+  <div class="dh">
+    <div style="display:flex;align-items:center;gap:8px"><div class="dl"><span>Fleet</span>Tracker</div><div class="dli"><div class="sd on"></div>LIVE</div></div>
+    <div style="display:flex;align-items:center;gap:8px"><div style="font-size:9px;color:var(--text2)">3秒更新</div><div class="dck" id="dclock">--:--:--</div></div>
   </div>
-  <div class="d-body">
-    <div class="d-side">
-      <div class="d-stats">
-        <div class="d-stat"><div class="d-stat-l">接続台数</div><div class="d-stat-v" style="color:var(--green)" id="da">0<span class="d-stat-u">台</span></div></div>
-        <div class="d-stat"><div class="d-stat-l">最終受信</div><div class="d-stat-v" style="color:var(--cyan)" id="dl">--:--</div></div>
+  <div class="db">
+    <div class="ds">
+      <div class="dtabs">
+        <div class="dtab on" onclick="switchTab(0)">車両</div>
+        <div class="dtab" onclick="switchTab(1)">サイクル</div>
       </div>
-      <div class="d-lh">車両一覧 <span id="dvc" style="float:right;font-weight:400">0台</span></div>
-      <div class="d-list" id="dlist"></div>
+
+      <!-- Tab 0: Vehicles -->
+      <div class="dtpanel on" id="tab0">
+        <div class="dst">
+          <div class="ds1"><div class="ds1l">接続台数</div><div class="ds1v" style="color:var(--green)" id="da">0<span class="ds1u">台</span></div></div>
+          <div class="ds1"><div class="ds1l">本日サイクル</div><div class="ds1v" style="color:var(--cyan)" id="dtc">0<span class="ds1u">回</span></div></div>
+          <div class="ds1"><div class="ds1l">平均サイクル</div><div class="ds1v" style="color:var(--amber)" id="dac">--<span class="ds1u">分</span></div></div>
+          <div class="ds1"><div class="ds1l">最終受信</div><div class="ds1v" style="color:var(--purple)" id="dlt">--:--</div></div>
+        </div>
+        <div class="dlh">車両一覧 <span id="dvc" style="float:right;font-weight:400">0台</span></div>
+        <div class="dvl" id="dlist"></div>
+      </div>
+
+      <!-- Tab 1: Cycles -->
+      <div class="dtpanel" id="tab1">
+        <div class="cyc-summary">
+          <div class="cyc-title">平均サイクル内訳</div>
+          <div class="cyc-bars">
+            <div class="cyc-row"><div class="cyc-lbl">積込</div><div class="cyc-track"><div class="cyc-fill" id="cf-load" style="width:0;background:var(--amber)">--</div></div></div>
+            <div class="cyc-row"><div class="cyc-lbl">実車</div><div class="cyc-track"><div class="cyc-fill" id="cf-haul" style="width:0;background:var(--red)">--</div></div></div>
+            <div class="cyc-row"><div class="cyc-lbl">荷降</div><div class="cyc-track"><div class="cyc-fill" id="cf-dump" style="width:0;background:var(--purple)">--</div></div></div>
+            <div class="cyc-row"><div class="cyc-lbl">空車</div><div class="cyc-track"><div class="cyc-fill" id="cf-ret" style="width:0;background:var(--blue)">--</div></div></div>
+          </div>
+        </div>
+        <div class="dlh">サイクル履歴</div>
+        <div class="cyc-table"><table><thead><tr><th>車両</th><th>開始</th><th>積込</th><th>実車</th><th>荷降</th><th>空車</th><th>合計</th></tr></thead><tbody id="cyc-body"></tbody></table></div>
+        <div class="csv-btn" onclick="exportCSV()">📥 CSV出力</div>
+      </div>
     </div>
-    <div class="d-mapw">
+
+    <div class="dmw">
       <div id="dmap"></div>
-      <div class="d-det" id="ddet">
-        <div class="d-det-h"><div class="d-det-t" id="ddt">-</div><button class="d-det-x" onclick="closeDet()">×</button></div>
-        <div class="d-det-b" id="ddb"></div>
+      <div class="geo-bar" id="geobar">
+        <div class="geo-title">ジオフェンス設定</div>
+        <div class="geo-item">
+          <div class="geo-dot" style="background:rgba(245,158,11,.3);border-color:var(--amber)"></div>
+          <div><div class="geo-name">積込場</div><div class="geo-coord" id="geo-load-coord">地図をクリックして設定</div></div>
+          <div class="geo-setbtn" style="border-color:var(--amber);color:var(--amber)" id="geo-load-btn" onclick="setGeoMode('load')">設定</div>
+        </div>
+        <div class="geo-item">
+          <div class="geo-dot" style="background:rgba(139,92,246,.3);border-color:var(--purple)"></div>
+          <div><div class="geo-name">荷降場</div><div class="geo-coord" id="geo-dump-coord">地図をクリックして設定</div></div>
+          <div class="geo-setbtn" style="border-color:var(--purple);color:var(--purple)" id="geo-dump-btn" onclick="setGeoMode('dump')">設定</div>
+        </div>
+        <div class="geo-hint" id="geo-hint" style="display:none">🎯 地図上をクリックして位置を設定</div>
       </div>
-      <div class="d-nodata" id="dnodata">
-        <h3>📡 データ待機中</h3>
-        <p>スマホのSafariでこのページを開き「GPS送信モード」で送信を開始すると、ここに表示されます。</p>
-      </div>
+      <div class="ddt" id="ddet"><div class="ddth"><div class="ddtt" id="ddt-t">-</div><button class="ddtx" onclick="closeDet()">×</button></div><div class="ddtb" id="ddt-b"></div></div>
+      <div class="nodata" id="nodata"><h3>📡 データ待機中</h3><p>スマホのSafariでGPS送信を開始するとここに表示されます</p></div>
     </div>
   </div>
 </div>
 
 <script>
-// ===== SUPABASE REST HELPERS =====
-async function dbInsert(vehicleId, lat, lng, speed, heading, accuracy) {
-  const res = await fetch(API + '/vehicle_positions', {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify({ vehicle_id: vehicleId, lat, lng, speed, heading, accuracy })
+// ===== DB =====
+async function dbInsert(vid,lat,lng,spd,hdg,acc){const r=await fetch(API+'/vehicle_positions',{method:'POST',headers:H,body:JSON.stringify({vehicle_id:vid,lat,lng,speed:spd,heading:hdg,accuracy:acc})});return r.ok}
+async function dbGetLatest(){const since=new Date(Date.now()-5*60*1000).toISOString();const r=await fetch(API+'/vehicle_positions?select=vehicle_id,lat,lng,speed,heading,accuracy,created_at&created_at=gte.'+since+'&order=created_at.desc&limit=200',{headers:HR});if(!r.ok)return[];const rows=await r.json();const m={};rows.forEach(r=>{if(!m[r.vehicle_id])m[r.vehicle_id]=r});return Object.values(m)}
+
+// ===== MODE =====
+function openSender(){document.getElementById('modesel').style.display='none';document.getElementById('sender').style.display='flex';initSender()}
+function openDash(){document.getElementById('modesel').style.display='none';document.getElementById('dash').style.display='flex';initDash()}
+
+// ===== SENDER =====
+let sMap,sMk,sCr,sVid='D-01',sSend=false,sW=null,sI=null,sPos=null,sCnt=0;
+function initSender(){const c=document.getElementById('schips');for(let i=1;i<=10;i++){const id='D-'+String(i).padStart(2,'0');const e=document.createElement('div');e.className='sch'+(id===sVid?' on':'');e.textContent=id;e.onclick=()=>{document.querySelectorAll('.sch').forEach(x=>x.classList.remove('on'));e.classList.add('on');sVid=id};c.appendChild(e)}sMap=L.map('smap',{zoomControl:false}).setView([34.4,132.46],15);L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(sMap)}
+function toggleGPS(){if(!sSend){if(!navigator.geolocation){showSM('GPS非対応');return}sSend=true;document.getElementById('sbtn').textContent='GPS送信を停止';document.getElementById('sbtn').className='sb stop';document.getElementById('sdot').className='sd on';document.getElementById('stxt').textContent='送信中';document.getElementById('stxt').style.color='var(--green)';hideSM();sW=navigator.geolocation.watchPosition(p=>{sPos=p.coords;const{latitude:a,longitude:n}=p.coords;if(sMk){sMk.setLatLng([a,n]);sCr.setLatLng([a,n]);sMk.setStyle({fillColor:'#10b981'});sCr.setStyle({color:'#10b981',fillColor:'#10b981'})}else{sMk=L.circleMarker([a,n],{radius:8,fillColor:'#10b981',fillOpacity:1,color:'#fff',weight:2}).addTo(sMap);sCr=L.circle([a,n],{radius:30,color:'#10b981',fillColor:'#10b981',fillOpacity:.1,weight:1}).addTo(sMap)}sMap.panTo([a,n]);upSUI()},e=>{const m={1:'GPS権限が拒否されました',2:'位置情報を取得できません',3:'タイムアウト'};showSM(m[e.code]||'GPSエラー');stopGPS()},{enableHighAccuracy:true,maximumAge:0,timeout:15000});sendGPS();sI=setInterval(sendGPS,5000)}else stopGPS()}
+function stopGPS(){sSend=false;if(sW!==null)navigator.geolocation.clearWatch(sW);if(sI)clearInterval(sI);sW=null;sI=null;document.getElementById('sbtn').textContent='GPS送信を開始';document.getElementById('sbtn').className='sb go';document.getElementById('sdot').className='sd off';document.getElementById('stxt').textContent='停止中';document.getElementById('stxt').style.color=''}
+async function sendGPS(){if(!sPos||!sSend)return;const s=sPos.speed!==null?Math.round(sPos.speed*3.6):0;const ok=await dbInsert(sVid,sPos.latitude,sPos.longitude,s,sPos.heading||0,Math.round(sPos.accuracy||0));if(ok){sCnt++;document.getElementById('scnt').textContent=sCnt;hideSM()}else showSM('送信失敗')}
+function upSUI(){if(!sPos)return;document.getElementById('slat').textContent=sPos.latitude.toFixed(6);document.getElementById('slng').textContent=sPos.longitude.toFixed(6);document.getElementById('sspd').textContent=(sPos.speed!==null?Math.round(sPos.speed*3.6):0)+' km/h'}
+function showSM(t){const e=document.getElementById('smsg');e.textContent=t;e.style.display='block'}
+function hideSM(){document.getElementById('smsg').style.display='none'}
+
+// ===== DASHBOARD =====
+let dMap,dMk={},dTr={},dSel=null,dData={};
+
+// Geofence data
+let geoZones={load:null,dump:null};
+let geoCircles={load:null,dump:null};
+let geoLabels={load:null,dump:null};
+let geoMode=null;
+const GEO_RADIUS=100; // meters
+
+// Cycle tracking
+let vehicleStates={}; // {vid: {state:'idle'|'loading'|'hauling'|'dumping'|'returning', since:ts}}
+let cycleHistory=[]; // [{vid, start, loadTime, haulTime, dumpTime, retTime, total}]
+
+function initDash(){
+  dMap=L.map('dmap').setView([34.4,132.46],14);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(dMap);
+
+  // Click to set geofence
+  dMap.on('click',e=>{
+    if(!geoMode)return;
+    const{lat,lng}=e.latlng;
+    geoZones[geoMode]={lat,lng};
+
+    // Draw circle
+    if(geoCircles[geoMode])dMap.removeLayer(geoCircles[geoMode]);
+    if(geoLabels[geoMode])dMap.removeLayer(geoLabels[geoMode]);
+    const color=geoMode==='load'?'#f59e0b':'#8b5cf6';
+    geoCircles[geoMode]=L.circle([lat,lng],{radius:GEO_RADIUS,color,fillColor:color,fillOpacity:.08,weight:2,dashArray:'5 3'}).addTo(dMap);
+    const label=geoMode==='load'?'🏗 積込場':'📍 荷降場';
+    geoLabels[geoMode]=L.marker([lat,lng],{icon:L.divIcon({className:'',html:`<div class="gl" style="color:${color};border-color:${color}">${label}</div>`,iconSize:[70,18],iconAnchor:[35,-8]})}).addTo(dMap);
+    document.getElementById('geo-'+geoMode+'-coord').textContent=lat.toFixed(5)+', '+lng.toFixed(5);
+    document.getElementById('geo-'+geoMode+'-btn').textContent='変更';
+
+    geoMode=null;
+    document.getElementById('geo-hint').style.display='none';
+    dMap.getContainer().style.cursor='';
   });
-  return res.ok;
-}
 
-async function dbGetLatest() {
-  // Get latest position per vehicle (last 5 min)
-  const since = new Date(Date.now() - 5*60*1000).toISOString();
-  const res = await fetch(
-    API + '/vehicle_positions?select=vehicle_id,lat,lng,speed,heading,accuracy,created_at&created_at=gte.' + since + '&order=created_at.desc&limit=200',
-    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
-  );
-  if (!res.ok) return [];
-  const rows = await res.json();
-  // Deduplicate: keep latest per vehicle
-  const map = {};
-  rows.forEach(r => { if (!map[r.vehicle_id]) map[r.vehicle_id] = r; });
-  return Object.values(map);
-}
-
-// ===== MODE SWITCHING =====
-function openSender() {
-  document.getElementById('modesel').style.display = 'none';
-  document.getElementById('sender').style.display = 'flex';
-  initSender();
-}
-function openDash() {
-  document.getElementById('modesel').style.display = 'none';
-  document.getElementById('dash').style.display = 'flex';
-  initDash();
-}
-
-// ==============================
-//  SENDER
-// ==============================
-let sMap, sMark, sCirc, sVehicle = 'D-01', sSending = false, sWatch = null, sIntv = null, sPos = null, sCount = 0;
-
-function initSender() {
-  const chips = document.getElementById('schips');
-  for (let i = 1; i <= 10; i++) {
-    const id = 'D-' + String(i).padStart(2,'0');
-    const c = document.createElement('div');
-    c.className = 's-chip' + (id === sVehicle ? ' on' : '');
-    c.textContent = id;
-    c.onclick = () => { document.querySelectorAll('.s-chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); sVehicle = id; };
-    chips.appendChild(c);
-  }
-  sMap = L.map('smap', { zoomControl: false }).setView([34.4, 132.46], 15);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(sMap);
-}
-
-function toggleGPS() {
-  if (!sSending) {
-    if (!navigator.geolocation) { showSMsg('このブラウザはGPS非対応です'); return; }
-    sSending = true;
-    document.getElementById('sbtn').textContent = 'GPS送信を停止';
-    document.getElementById('sbtn').className = 's-btn stop';
-    document.getElementById('sdot').className = 's-dot on';
-    document.getElementById('stxt').textContent = '送信中';
-    document.getElementById('stxt').style.color = 'var(--green)';
-    hideSMsg();
-
-    sWatch = navigator.geolocation.watchPosition(pos => {
-      sPos = pos.coords;
-      const {latitude: la, longitude: ln} = pos.coords;
-      if (sMark) { sMark.setLatLng([la,ln]); sCirc.setLatLng([la,ln]); sMark.setStyle({fillColor:'#10b981'}); sCirc.setStyle({color:'#10b981',fillColor:'#10b981'}); }
-      else {
-        sMark = L.circleMarker([la,ln],{radius:8,fillColor:'#10b981',fillOpacity:1,color:'#fff',weight:2}).addTo(sMap);
-        sCirc = L.circle([la,ln],{radius:30,color:'#10b981',fillColor:'#10b981',fillOpacity:.1,weight:1}).addTo(sMap);
-      }
-      sMap.panTo([la,ln]);
-      updateSUI();
-    }, err => {
-      const m = {1:'GPS権限が拒否されました。Safariの設定で位置情報を許可してください。',2:'位置情報を取得できません。屋外で試してください。',3:'GPS取得がタイムアウトしました。'};
-      showSMsg(m[err.code]||'GPSエラーが発生しました');
-      stopGPS();
-    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
-
-    sendGPS();
-    sIntv = setInterval(sendGPS, 5000);
-  } else {
-    stopGPS();
-  }
-}
-
-function stopGPS() {
-  sSending = false;
-  if (sWatch !== null) navigator.geolocation.clearWatch(sWatch);
-  if (sIntv) clearInterval(sIntv);
-  sWatch = null; sIntv = null;
-  document.getElementById('sbtn').textContent = 'GPS送信を開始';
-  document.getElementById('sbtn').className = 's-btn go';
-  document.getElementById('sdot').className = 's-dot off';
-  document.getElementById('stxt').textContent = '停止中';
-  document.getElementById('stxt').style.color = '';
-}
-
-async function sendGPS() {
-  if (!sPos || !sSending) return;
-  const spd = sPos.speed !== null ? Math.round(sPos.speed * 3.6) : 0;
-  const hdg = sPos.heading || 0;
-  const acc = Math.round(sPos.accuracy || 0);
-  const ok = await dbInsert(sVehicle, sPos.latitude, sPos.longitude, spd, hdg, acc);
-  if (ok) {
-    sCount++;
-    document.getElementById('scnt').textContent = sCount;
-    hideSMsg();
-  } else {
-    showSMsg('データ送信に失敗しました。ネットワークを確認してください。');
-  }
-}
-
-function updateSUI() {
-  if (!sPos) return;
-  document.getElementById('slat').textContent = sPos.latitude.toFixed(6);
-  document.getElementById('slng').textContent = sPos.longitude.toFixed(6);
-  document.getElementById('sspd').textContent = (sPos.speed !== null ? Math.round(sPos.speed*3.6) : 0) + ' km/h';
-}
-
-function showSMsg(t) { const e=document.getElementById('smsg'); e.textContent=t; e.style.display='block'; }
-function hideSMsg() { document.getElementById('smsg').style.display='none'; }
-
-// ==============================
-//  DASHBOARD
-// ==============================
-let dMap, dMarkers = {}, dTrails = {}, dSel = null, dData = {};
-
-function initDash() {
-  dMap = L.map('dmap').setView([34.4, 132.46], 14);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(dMap);
-
-  setInterval(() => {
-    document.getElementById('dclock').textContent = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  }, 1000);
-
+  setInterval(()=>{document.getElementById('dclock').textContent=new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'})},1000);
   refreshDash();
-  setInterval(refreshDash, 3000);
+  setInterval(refreshDash,3000);
 }
 
-async function refreshDash() {
-  const rows = await dbGetLatest();
-  const now = Date.now();
+function setGeoMode(mode){
+  geoMode=mode;
+  document.getElementById('geo-hint').style.display='block';
+  dMap.getContainer().style.cursor='crosshair';
+}
 
-  document.getElementById('dnodata').style.display = rows.length === 0 ? 'flex' : 'none';
+function switchTab(n){
+  document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('on',i===n));
+  document.querySelectorAll('.dtpanel').forEach((p,i)=>p.classList.toggle('on',i===n));
+}
 
-  // Update data
-  rows.forEach(r => {
-    const ts = new Date(r.created_at).getTime();
-    dData[r.vehicle_id] = { lat: r.lat, lng: r.lng, speed: r.speed||0, accuracy: r.accuracy||0, ts };
+// Distance in meters between two lat/lng points
+function distM(lat1,lng1,lat2,lng2){
+  const R=6371000;const dLat=(lat2-lat1)*Math.PI/180;const dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function inZone(lat,lng,zone){
+  if(!zone)return false;
+  return distM(lat,lng,zone.lat,zone.lng)<=GEO_RADIUS;
+}
+
+// State machine for cycle detection
+function updateCycleState(vid,lat,lng,ts){
+  if(!geoZones.load||!geoZones.dump)return;
+  if(!vehicleStates[vid])vehicleStates[vid]={state:'idle',since:ts,cycleStart:null,loadTime:0,haulTime:0,dumpTime:0};
+
+  const s=vehicleStates[vid];
+  const inLoad=inZone(lat,lng,geoZones.load);
+  const inDump=inZone(lat,lng,geoZones.dump);
+  const prevState=s.state;
+  const elapsed=ts-s.since;
+
+  switch(s.state){
+    case 'idle':
+      if(inLoad){s.state='loading';s.since=ts;s.cycleStart=ts;s.loadTime=0;s.haulTime=0;s.dumpTime=0}
+      break;
+    case 'loading':
+      if(!inLoad){s.loadTime=elapsed;s.state='hauling';s.since=ts}
+      break;
+    case 'hauling':
+      if(inDump){s.haulTime=elapsed;s.state='dumping';s.since=ts}
+      else if(inLoad){s.state='loading';s.since=ts} // went back
+      break;
+    case 'dumping':
+      if(!inDump){s.dumpTime=elapsed;s.state='returning';s.since=ts}
+      break;
+    case 'returning':
+      if(inLoad){
+        // Cycle complete!
+        const retTime=elapsed;
+        const total=ts-s.cycleStart;
+        cycleHistory.unshift({vid,start:new Date(s.cycleStart).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}),
+          loadTime:s.loadTime,haulTime:s.haulTime,dumpTime:s.dumpTime,retTime,total});
+        if(cycleHistory.length>100)cycleHistory.pop();
+        // Reset for next cycle
+        s.state='loading';s.since=ts;s.cycleStart=ts;s.loadTime=0;s.haulTime=0;s.dumpTime=0;
+      }
+      else if(inDump){s.state='dumping';s.since=ts}
+      break;
+  }
+}
+
+function getVehicleStatus(vid,v){
+  const age=Date.now()-v.ts;
+  if(age>=60000)return{label:'オフライン',color:'#6b7280',cls:'background:rgba(107,114,128,.2);color:#6b7280'};
+  const s=vehicleStates[vid];
+  if(s){
+    const map={loading:{label:'積込中',color:'#f59e0b',cls:'background:rgba(245,158,11,.2);color:#f59e0b'},
+      hauling:{label:'実車走行',color:'#ef4444',cls:'background:rgba(239,68,68,.2);color:#ef4444'},
+      dumping:{label:'荷降中',color:'#8b5cf6',cls:'background:rgba(139,92,246,.2);color:#8b5cf6'},
+      returning:{label:'空車走行',color:'#3b82f6',cls:'background:rgba(59,130,246,.2);color:#3b82f6'}};
+    if(map[s.state])return map[s.state];
+  }
+  if(v.speed>5)return{label:'走行中',color:'#10b981',cls:'background:rgba(16,185,129,.2);color:#10b981'};
+  return{label:'停車中',color:'#f59e0b',cls:'background:rgba(245,158,11,.2);color:#f59e0b'};
+}
+
+async function refreshDash(){
+  const rows=await dbGetLatest();
+  const now=Date.now();
+  document.getElementById('nodata').style.display=rows.length===0?'flex':'none';
+
+  rows.forEach(r=>{
+    const ts=new Date(r.created_at).getTime();
+    dData[r.vehicle_id]={lat:r.lat,lng:r.lng,speed:r.speed||0,accuracy:r.accuracy||0,ts};
+    updateCycleState(r.vehicle_id,r.lat,r.lng,ts);
   });
 
-  const ids = Object.keys(dData).sort();
-  const active = ids.filter(id => (now - dData[id].ts) < 60000);
+  const ids=Object.keys(dData).sort();
+  const active=ids.filter(id=>(now-dData[id].ts)<60000);
 
-  document.getElementById('da').innerHTML = `${active.length}<span class="d-stat-u">台</span>`;
-  document.getElementById('dvc').textContent = ids.length + '台';
-  if (ids.length > 0) {
-    const latest = Math.max(...ids.map(id => dData[id].ts));
-    document.getElementById('dl').textContent = new Date(latest).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('da').innerHTML=`${active.length}<span class="ds1u">台</span>`;
+  document.getElementById('dvc').textContent=ids.length+'台';
+  document.getElementById('dtc').innerHTML=`${cycleHistory.length}<span class="ds1u">回</span>`;
+
+  if(cycleHistory.length>0){
+    const avg=cycleHistory.reduce((s,c)=>s+c.total,0)/cycleHistory.length;
+    document.getElementById('dac').innerHTML=`${(avg/60000).toFixed(1)}<span class="ds1u">分</span>`;
+    // Breakdown bars
+    const al=cycleHistory.reduce((s,c)=>s+c.loadTime,0)/cycleHistory.length;
+    const ah=cycleHistory.reduce((s,c)=>s+c.haulTime,0)/cycleHistory.length;
+    const ad=cycleHistory.reduce((s,c)=>s+c.dumpTime,0)/cycleHistory.length;
+    const ar=cycleHistory.reduce((s,c)=>s+c.retTime,0)/cycleHistory.length;
+    const mx=Math.max(al,ah,ad,ar,1);
+    document.getElementById('cf-load').style.width=(al/mx*100)+'%';document.getElementById('cf-load').textContent=(al/60000).toFixed(1)+'分';
+    document.getElementById('cf-haul').style.width=(ah/mx*100)+'%';document.getElementById('cf-haul').textContent=(ah/60000).toFixed(1)+'分';
+    document.getElementById('cf-dump').style.width=(ad/mx*100)+'%';document.getElementById('cf-dump').textContent=(ad/60000).toFixed(1)+'分';
+    document.getElementById('cf-ret').style.width=(ar/mx*100)+'%';document.getElementById('cf-ret').textContent=(ar/60000).toFixed(1)+'分';
   }
 
-  // Center map on first data
-  if (!dMap._centered && ids.length > 0) {
-    const f = dData[ids[0]];
-    dMap.setView([f.lat, f.lng], 15);
-    dMap._centered = true;
+  if(ids.length>0){
+    const latest=Math.max(...ids.map(id=>dData[id].ts));
+    document.getElementById('dlt').textContent=new Date(latest).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   }
+  if(!dMap._ctr&&ids.length>0){dMap.setView([dData[ids[0]].lat,dData[ids[0]].lng],15);dMap._ctr=true}
 
-  // Update list
-  const list = document.getElementById('dlist');
-  list.innerHTML = '';
-  ids.forEach(id => {
-    const v = dData[id];
-    const age = now - v.ts;
-    const online = age < 60000;
-    const color = online ? (v.speed > 5 ? '#10b981' : '#f59e0b') : '#6b7280';
-    const status = online ? (v.speed > 5 ? '走行中' : '停車中') : 'オフライン';
-    const stCls = online ? (v.speed > 5 ? 'background:rgba(16,185,129,.2);color:#10b981' : 'background:rgba(245,158,11,.2);color:#f59e0b') : 'background:rgba(107,114,128,.2);color:#6b7280';
-    const ageStr = age < 10000 ? '今' : age < 60000 ? Math.round(age/1000)+'秒前' : Math.round(age/60000)+'分前';
+  // List
+  const list=document.getElementById('dlist');list.innerHTML='';
+  ids.forEach(id=>{
+    const v=dData[id];const st=getVehicleStatus(id,v);
+    const age=now-v.ts;const ageStr=age<10000?'今':age<60000?Math.round(age/1000)+'秒前':Math.round(age/60000)+'分前';
+    if(dMk[id]){dMk[id].setLatLng([v.lat,v.lng]);dMk[id].setIcon(mkI(id,st.color))}
+    else{dMk[id]=L.marker([v.lat,v.lng],{icon:mkI(id,st.color)}).addTo(dMap);dMk[id].on('click',()=>selV(id))}
+    if(!dTr[id])dTr[id]={p:[],l:null};const tr=dTr[id];const lp=tr.p.length>0?tr.p[tr.p.length-1]:null;
+    if(!lp||lp[0]!==v.lat||lp[1]!==v.lng){tr.p.push([v.lat,v.lng]);if(tr.p.length>300)tr.p.shift()}
+    if(tr.l)tr.l.setLatLngs(tr.p);else tr.l=L.polyline(tr.p,{color:st.color,weight:2,opacity:.35}).addTo(dMap);
 
-    // Map marker
-    if (dMarkers[id]) {
-      dMarkers[id].setLatLng([v.lat, v.lng]);
-      dMarkers[id].setIcon(mkIcon(id, color));
-    } else {
-      dMarkers[id] = L.marker([v.lat, v.lng], { icon: mkIcon(id, color) }).addTo(dMap);
-      dMarkers[id].on('click', () => selVehicle(id));
-    }
-
-    // Trail
-    if (!dTrails[id]) dTrails[id] = { pts: [], line: null };
-    const tr = dTrails[id];
-    const lp = tr.pts.length > 0 ? tr.pts[tr.pts.length-1] : null;
-    if (!lp || lp[0]!==v.lat || lp[1]!==v.lng) { tr.pts.push([v.lat, v.lng]); if(tr.pts.length>300) tr.pts.shift(); }
-    if (tr.line) tr.line.setLatLngs(tr.pts); else tr.line = L.polyline(tr.pts,{color,weight:2,opacity:.35}).addTo(dMap);
-
-    const el = document.createElement('div');
-    el.className = 'd-vi' + (dSel===id?' sel':'');
-    el.onclick = () => selVehicle(id);
-    el.innerHTML = `<div class="d-vi-ico" style="background:${online?'rgba(16,185,129,.12)':'rgba(107,114,128,.12)'}">🚛</div>
-      <div><div class="d-vi-nm">${id} <span class="d-vi-tag" style="${stCls}">${status}</span></div><div class="d-vi-det">${v.speed||0}km/h</div></div>
-      <div class="d-vi-rt"><div class="d-vi-tm">${new Date(v.ts).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div><div style="font-size:8px;color:var(--muted)">${ageStr}</div></div>`;
+    const el=document.createElement('div');el.className='dv'+(dSel===id?' sel':'');el.onclick=()=>selV(id);
+    const cs=vehicleStates[id];const cycCnt=cycleHistory.filter(c=>c.vid===id).length;
+    el.innerHTML=`<div class="dvi" style="background:rgba(16,185,129,.1)">🚛</div>
+      <div><div class="dvn">${id} <span class="dvtg" style="${st.cls}">${st.label}</span></div><div class="dvd">${v.speed||0}km/h ／ ${cycCnt}サイクル</div></div>
+      <div class="dvr"><div class="dvt">${new Date(v.ts).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div><div style="font-size:7px;color:var(--muted)">${ageStr}</div></div>`;
     list.appendChild(el);
   });
 
-  if (dSel && dData[dSel]) showDet(dSel);
+  // Cycle table
+  const tbody=document.getElementById('cyc-body');tbody.innerHTML='';
+  cycleHistory.slice(0,30).forEach(c=>{
+    const fmt=ms=>ms>0?(ms/60000).toFixed(1)+'分':'--';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${c.vid}</td><td>${c.start}</td><td>${fmt(c.loadTime)}</td><td>${fmt(c.haulTime)}</td><td>${fmt(c.dumpTime)}</td><td>${fmt(c.retTime)}</td><td style="color:var(--cyan);font-weight:700">${fmt(c.total)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  if(dSel&&dData[dSel])showDet(dSel);
 }
 
-function mkIcon(id, color) {
-  const n = id.replace('D-','');
-  return L.divIcon({ className:'', html:`<div style="position:relative"><div class="t-label" style="position:absolute;top:-15px;left:50%;transform:translateX(-50%)">${id}</div><div class="t-dot" style="width:24px;height:24px;background:${color}">${n}</div></div>`, iconSize:[24,24], iconAnchor:[12,12] });
-}
+function mkI(id,c){const n=id.replace('D-','');return L.divIcon({className:'',html:`<div style="position:relative"><div class="tl" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%)">${id}</div><div class="td" style="width:22px;height:22px;background:${c}">${n}</div></div>`,iconSize:[22,22],iconAnchor:[11,11]})}
+function selV(id){dSel=id;const v=dData[id];if(v)dMap.panTo([v.lat,v.lng],{animate:true});showDet(id);refreshDash()}
+function showDet(id){const v=dData[id];if(!v)return;document.getElementById('ddet').classList.add('vis');document.getElementById('ddt-t').textContent=id;const age=Date.now()-v.ts;const ageStr=age<10000?'数秒前':age<60000?Math.round(age/1000)+'秒前':Math.round(age/60000)+'分前';const st=getVehicleStatus(id,v);const cs=vehicleStates[id];const cycCnt=cycleHistory.filter(c=>c.vid===id).length;
+document.getElementById('ddt-b').innerHTML=`<div class="ddtr"><span class="ddtrl">ステータス</span><span class="dvtg" style="font-size:8px;${st.cls}">${st.label}</span></div>
+<div class="ddtr"><span class="ddtrl">速度</span><span class="ddtrv">${v.speed||0} km/h</span></div>
+<div class="ddtr"><span class="ddtrl">精度</span><span class="ddtrv">${v.accuracy||'--'} m</span></div>
+<div class="ddtr"><span class="ddtrl">更新</span><span class="ddtrv" style="color:${age<60000?'var(--green)':'var(--red)'}">${ageStr}</span></div>
+<div style="height:1px;background:var(--border);margin:3px 0"></div>
+<div class="ddtr"><span class="ddtrl">サイクル数</span><span class="ddtrv" style="color:var(--cyan)">${cycCnt}回</span></div>
+${cs?`<div class="ddtr"><span class="ddtrl">現在フェーズ</span><span class="ddtrv">${st.label}</span></div><div class="ddtr"><span class="ddtrl">経過</span><span class="ddtrv">${((Date.now()-cs.since)/60000).toFixed(1)}分</span></div>`:''}`;}
+function closeDet(){document.getElementById('ddet').classList.remove('vis');dSel=null;}
 
-function selVehicle(id) {
-  dSel = id;
-  const v = dData[id];
-  if (v) dMap.panTo([v.lat, v.lng], {animate:true});
-  showDet(id);
-  refreshDash();
+function exportCSV(){
+  if(cycleHistory.length===0){alert('サイクルデータがありません');return}
+  let csv='車両,開始時刻,積込(分),実車(分),荷降(分),空車(分),合計(分)\n';
+  cycleHistory.forEach(c=>{
+    const fmt=ms=>ms>0?(ms/60000).toFixed(1):'0';
+    csv+=`${c.vid},${c.start},${fmt(c.loadTime)},${fmt(c.haulTime)},${fmt(c.dumpTime)},${fmt(c.retTime)},${fmt(c.total)}\n`;
+  });
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cycle_report_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
-
-function showDet(id) {
-  const v = dData[id]; if(!v) return;
-  document.getElementById('ddet').classList.add('vis');
-  document.getElementById('ddt').textContent = id;
-  const age = Date.now()-v.ts;
-  const ageStr = age<10000?'数秒前':age<60000?Math.round(age/1000)+'秒前':Math.round(age/60000)+'分前';
-  const online = age < 60000;
-  document.getElementById('ddb').innerHTML = `
-    <div class="d-det-r"><span class="d-det-rl">速度</span><span class="d-det-rv">${v.speed||0} km/h</span></div>
-    <div class="d-det-r"><span class="d-det-rl">GPS精度</span><span class="d-det-rv">${v.accuracy||'--'} m</span></div>
-    <div class="d-det-r"><span class="d-det-rl">最終更新</span><span class="d-det-rv" style="color:${online?'var(--green)':'var(--red)'};">${ageStr}</span></div>
-    <div style="height:1px;background:var(--border);margin:4px 0"></div>
-    <div class="d-det-r"><span class="d-det-rl">緯度</span><span class="d-det-rv">${v.lat.toFixed(6)}</span></div>
-    <div class="d-det-r"><span class="d-det-rl">経度</span><span class="d-det-rv">${v.lng.toFixed(6)}</span></div>
-    <div class="d-det-r"><span class="d-det-rl">軌跡</span><span class="d-det-rv">${(dTrails[id]?.pts||[]).length}点</span></div>`;
-}
-
-function closeDet() { document.getElementById('ddet').classList.remove('vis'); dSel=null; }
 </script>
 </body>
 </html>
