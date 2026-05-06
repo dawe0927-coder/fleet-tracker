@@ -100,7 +100,12 @@ body { min-height: 100vh; padding: 16px; line-height: 1.6; }
 .auto-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 .auto-label { font-weight: 500; font-size: 13px; }
 .auto-tool { font-size: 9px; letter-spacing: 0.15em; color: var(--text-muted); background: var(--bg-soft); padding: 2px 8px; }
+.auto-tool-note { display: inline-block; font-size: 10px; color: var(--text-faint); margin-left: 6px; line-height: 1.4; }
 .auto-desc { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+.glossary { background: #fffbf0; border: 1px solid #fbbf24; padding: 16px 20px; margin-bottom: 32px; border-radius: 2px; }
+.glossary-title { font-size: 12px; font-weight: 600; color: var(--gold); margin-bottom: 10px; letter-spacing: 0.1em; }
+.glossary-item { font-size: 12px; line-height: 1.7; color: var(--text); }
+.glossary-item strong { display: inline-block; min-width: 130px; font-weight: 600; }
 .nav { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); }
 .nav-hint { font-size: 11px; color: var(--gold); text-align: right; margin-bottom: 12px; }
 .nav-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -242,8 +247,13 @@ const AUTOMATIONS = [
   { id: 'auto_report', icon: '📊', label: '月次経営レポートの自動生成', tool: 'Claude チャット', desc: '売上データから月次PL・リピート率・客単価レポートを自動作成。', relatedCat: 'analysis' },
   { id: 'auto_tax', icon: '🧾', label: '確定申告サポート', tool: 'Claude チャット', desc: '経費仕訳の判断・青色申告書類の質問対応・税理士への質問整理。', relatedCat: 'tax' }
 ];
+const TOOL_NOTE = {
+  'Claude in Chrome': '＝ Chromeブラウザに入れるAI拡張。サイトのログインやクリック、入力をAIが代わりにやってくれます',
+  'Claude in Excel': '＝ Excelやスプレッドシートに組み込めるAI。セルの計算や転記を自動でやってくれます',
+  'Claude チャット': '＝ claude.ai（webサイト）の会話画面。文章作成や質問対応をしてくれる、いちばん基本のAI'
+};
 
-const STORAGE_KEY = 'melis_form_v3';
+const STORAGE_KEY = 'melis_form_v4';
 let state = {
   step: 0,
   basicInfo: { salonName: SALON.name, ownerName: SALON.ownerName, openDate: '', yearsExperience: '' },
@@ -332,7 +342,7 @@ function generatePrompt() {
     '━━━━━━━━━━━━━━━━━━━━━━\n\n' +
     '【お願いしたいこと】\nまず第1位の「' + (top3[0] ? top3[0].name : '') + '」に集中して、AI初心者でも実践できる改善プランを段階的に教えてください。\n\n' +
     '具体的には以下4点を整理してほしいです:\n1. 最初の1週間で取り組むべき具体的なアクション（日別タスク表）\n2. 1か月後に到達できる状態のイメージ\n3. 私の現在のツール環境(' + (toolsList || '未選択') + ')で無理なく始められる方法\n4. つまずきやすいポイントとその回避策\n\n' +
-    '【出力ルール】\n・回答は印刷したときにA4で2ページ以内に収まる量でお願いします（紙派の私が読みやすいように）\n・上記の【その他・特記事項】に書いた内容は、最低1度は回答に組み込んでください\n・長文の詳細解説より、すぐ手を動かせるレベルの実践ガイドを最優先でお願いします\n・コピペで使える文面（DM・あいさつメッセージ等）があれば積極的に提供してください';
+    '【出力ルール】\n・私はAIに初めて触れる完全な初心者です。「Claude in Chrome」「Claude in Excel」「Claude チャット」「API」「プロンプト」など、AI界隈で当たり前の用語でも、初出時に必ず1行で「これは何か」をかっこ書きで補足してください（例: Claude in Chrome（＝Chromeブラウザに入れるAI拡張、サイト操作を代行してくれる））\n・専門用語をそのまま使わない。美容師業界でいう「ホイル」「ベース剤」のように、相手の業界では当たり前でも私には未知です\n・回答は印刷したときにA4で2ページ以内に収まる量でお願いします（紙派の私が読みやすいように）\n・上記の【その他・特記事項】に書いた内容は、最低1度は回答に組み込んでください\n・長文の詳細解説より、すぐ手を動かせるレベルの実践ガイドを最優先でお願いします\n・コピペで使える文面（DM・あいさつメッセージ等）があれば積極的に提供してください';
 }
 
 function getRecommendedAutos() {
@@ -440,7 +450,8 @@ function tplStep3() {
   h += '<div style="margin-bottom:32px"><label class="section-label">特に自動化したい作業</label><div class="field-sublabel">複数選択可・該当するものだけ</div><div class="radio-stack">';
   for (const a of AUTOMATIONS) {
     const ac = state.automations.includes(a.id);
-    h += '<button class="auto-card ' + (ac ? 'active' : '') + '" onclick="toggleArr(\'automations\',\'' + a.id + '\')"><div class="checkbox">' + (ac ? '✓' : '') + '</div><div class="auto-icon">' + a.icon + '</div><div class="auto-content"><div class="auto-title-row"><span class="auto-label">' + a.label + '</span><span class="auto-tool">' + a.tool + '</span></div><div class="auto-desc">' + a.desc + '</div></div></button>';
+    const toolNote = TOOL_NOTE[a.tool] || '';
+    h += '<button class="auto-card ' + (ac ? 'active' : '') + '" onclick="toggleArr(\'automations\',\'' + a.id + '\')"><div class="checkbox">' + (ac ? '✓' : '') + '</div><div class="auto-icon">' + a.icon + '</div><div class="auto-content"><div class="auto-title-row"><span class="auto-label">' + a.label + '</span><span class="auto-tool">' + a.tool + '</span><span class="auto-tool-note">' + toolNote + '</span></div><div class="auto-desc">' + a.desc + '</div></div></button>';
   }
   h += '</div></div>';
   h += '<div style="margin-bottom:32px"><label class="section-label">その他・特記事項</label><div class="field-sublabel">任意</div><textarea class="textarea" rows="3" placeholder="例: 集客に伸び悩み中、店販を強化したい、特定の発注サイトを使っている、など" oninput="updateNotes(this.value)">' + escapeHtml(state.notes) + '</textarea></div>';
@@ -477,6 +488,11 @@ function tplResult() {
     }
     h += '</div>';
   }
+  h += '<div class="glossary"><div class="glossary-title">💡 用語ミニ辞典（Claude が回答で使う言葉）</div>'
+    + '<div class="glossary-item"><strong>Claude チャット</strong>＝ claude.ai（webサイト）の会話画面。文章を書いたり質問に答えてくれる、いちばん基本のAI。</div>'
+    + '<div class="glossary-item"><strong>Claude in Chrome</strong>＝ Chromeブラウザに入れる拡張機能。発注サイトのログイン・クリック・入力をAIが代わりにやってくれます。</div>'
+    + '<div class="glossary-item"><strong>Claude in Excel</strong>＝ Excelやスプレッドシートに組み込めるAI。セルの計算や転記を自動でやってくれます。</div>'
+    + '</div>';
   h += '<div class="result-section-h">Claude用プロンプト ✨</div><div class="field-sublabel">下記をコピーしてClaude(claude.ai)に貼り付けると、TOP1課題に対する1週間アクションプランが返ってきます。</div><div class="prompt-box">' + escapeHtml(prompt) + '</div>';
   h += '<div class="actions no-print"><button class="btn-action primary" onclick="copyPrompt()">📋 プロンプトをコピー</button><button class="btn-action secondary" onclick="window.print()">⬇ PDFとして保存</button><button class="btn-action tertiary" onclick="resetAll()">↻ 最初からやり直す</button></div>';
   h += '<div class="result-footer"><div class="result-footer-script">melis</div><div class="result-footer-en">— Crafted with Claude, for your daily flow —</div></div></div>';
