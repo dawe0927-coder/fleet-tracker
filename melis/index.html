@@ -126,11 +126,14 @@ body { min-height: 100vh; padding: 16px; line-height: 1.6; }
 .result-section-h { font-family: "Shippori Mincho", serif; font-weight: 500; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 .result-section-h::before { content: ''; width: 32px; height: 1px; background: var(--accent); }
 .chart { margin-bottom: 40px; }
-.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.bar-name { width: 130px; text-align: right; font-size: 11px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bar-track { flex: 1; height: 28px; background: var(--bg-soft); position: relative; overflow: hidden; }
-.bar-fill { height: 100%; transition: width 0.7s; }
-.bar-value { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 500; }
+.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; min-height: 36px; }
+.bar-name { width: 152px; text-align: right; font-size: 12px; flex-shrink: 0; line-height: 1.3; word-break: break-word; color: var(--text); }
+.bar-track { flex: 1; height: 32px; background: var(--bg-soft); position: relative; overflow: visible; border-radius: 2px; }
+.bar-fill { height: 100%; min-width: 2px; transition: width 0.7s; border-radius: 2px; }
+.bar-value { position: absolute; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 600; pointer-events: none; }
+.bar-value.inside { color: white; right: 8px; }
+.bar-value.outside { color: var(--text); left: calc(var(--bar-w) + 6px); }
+@media (max-width: 600px) { .bar-name { width: 96px; font-size: 11px; } .bar-value { font-size: 11px; } }
 .top1-detail { border-left: 2px solid var(--accent); padding: 8px 0 8px 24px; margin-bottom: 40px; }
 .top1-label { font-size: 11px; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 8px; }
 .top1-name { font-family: "Shippori Mincho", serif; font-weight: 500; font-size: 22px; margin-bottom: 12px; }
@@ -218,6 +221,19 @@ const PC_USAGE = [
   { id: 'rare', label: 'スマホ中心、PCはたまに' },
   { id: 'mobile_only', label: 'スマホのみ' }
 ];
+const MONTHLY_RESERVATIONS = [
+  { id: 'm0', label: '〜30回 / 月（開業直後）' },
+  { id: 'm1', label: '30〜50回 / 月' },
+  { id: 'm2', label: '50〜100回 / 月' },
+  { id: 'm3', label: '100回以上 / 月' },
+  { id: 'unknown', label: 'まだ把握していない' }
+];
+const LINE_PLANS = [
+  { id: 'free', label: '無料（コミュニケーションプラン・月200通まで）' },
+  { id: 'light', label: 'ライトプラン（月5,000円・5,000通まで）' },
+  { id: 'standard', label: 'スタンダードプラン（月15,000円・30,000通まで）' },
+  { id: 'unknown', label: 'プラン未確認 / まだ未開設' }
+];
 const AUTOMATIONS = [
   { id: 'auto_order', icon: '🌐', label: '材料・薬剤の発注サイト自動操作', tool: 'Claude in Chrome', desc: 'カラー剤・シャンプー等の発注サイトをChromeブラウザ上でClaudeが自動操作。発注リストを伝えるだけでログイン→カート投入→注文確定まで代行。', relatedCat: 'inventory' },
   { id: 'auto_excel', icon: '📊', label: '帳簿/カルテのExcelに自動転記', tool: 'Claude in Excel', desc: 'レシート・売上・施術履歴をExcelファイルに自動入力。月次集計も自動更新。', relatedCat: 'accounting' },
@@ -227,11 +243,11 @@ const AUTOMATIONS = [
   { id: 'auto_tax', icon: '🧾', label: '確定申告サポート', tool: 'Claude チャット', desc: '経費仕訳の判断・青色申告書類の質問対応・税理士への質問整理。', relatedCat: 'tax' }
 ];
 
-const STORAGE_KEY = 'melis_form_v2';
+const STORAGE_KEY = 'melis_form_v3';
 let state = {
   step: 0,
   basicInfo: { salonName: SALON.name, ownerName: SALON.ownerName, openDate: '', yearsExperience: '' },
-  scores: {}, methods: {}, tools: [], opsFormat: '', pcUsage: '', automations: [], notes: ''
+  scores: {}, methods: {}, tools: [], opsFormat: '', pcUsage: '', monthlyReservations: '', linePlan: '', automations: [], notes: ''
 };
 try { const s = localStorage.getItem(STORAGE_KEY); if (s) state = Object.assign(state, JSON.parse(s)); } catch(e) {}
 function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {} }
@@ -281,7 +297,7 @@ function fallbackCopy(text) {
 function resetAll() {
   if (!confirm('入力内容をすべてリセットして最初からやり直しますか？')) return;
   try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-  state = { step: 0, basicInfo: { salonName: SALON.name, ownerName: SALON.ownerName, openDate: '', yearsExperience: '' }, scores: {}, methods: {}, tools: [], opsFormat: '', pcUsage: '', automations: [], notes: '' };
+  state = { step: 0, basicInfo: { salonName: SALON.name, ownerName: SALON.ownerName, openDate: '', yearsExperience: '' }, scores: {}, methods: {}, tools: [], opsFormat: '', pcUsage: '', monthlyReservations: '', linePlan: '', automations: [], notes: '' };
   saveState(); render();
 }
 
@@ -292,6 +308,8 @@ function generatePrompt() {
   const opsLabel = opsObj ? opsObj.label : '未選択';
   const opsDesc = opsObj ? opsObj.desc : '';
   const pcLabel = (PC_USAGE.find(p => p.id === state.pcUsage) || {}).label || '未選択';
+  const monthlyLabel = (MONTHLY_RESERVATIONS.find(m => m.id === state.monthlyReservations) || {}).label || '未選択';
+  const lineLabel = (LINE_PLANS.find(lp => lp.id === state.linePlan) || {}).label || '未選択';
   const autoList = state.automations.map(a => { const o = AUTOMATIONS.find(x => x.id === a); return o ? '・' + o.label + ' [' + o.tool + ']' : ''; }).filter(Boolean).join('\n');
   const medals = ['🥇','🥈','🥉'];
   const top3Text = top3.map((t, i) => {
@@ -306,13 +324,15 @@ function generatePrompt() {
     '━━━━━━━━━━━━━━━━━━━━━━\n【業務棚卸し結果 - 優先度TOP3】\n━━━━━━━━━━━━━━━━━━━━━━\n\n' + top3Text + '\n\n' +
     '━━━━━━━━━━━━━━━━━━━━━━\n【現在使っているツール】\n' + (toolsList || '(未選択)') + '\n\n' +
     '【PC利用頻度】\n' + pcLabel + '\n\n' +
+    '【月間予約数】\n' + monthlyLabel + '\n\n' +
+    '【LINE公式アカウントのプラン】\n' + lineLabel + '\n\n' +
     '【希望する運用スタイル】\n' + opsLabel + '\n' + opsDesc + '\n\n' +
     (state.automations.length > 0 ? '【特に自動化したい作業】\n' + autoList + '\n\n' : '') +
     (state.notes ? '【その他・特記事項】\n' + state.notes + '\n\n' : '') +
     '━━━━━━━━━━━━━━━━━━━━━━\n\n' +
     '【お願いしたいこと】\nまず第1位の「' + (top3[0] ? top3[0].name : '') + '」に集中して、AI初心者でも実践できる改善プランを段階的に教えてください。\n\n' +
-    '具体的には以下4点を整理してほしいです:\n1. 最初の1週間で取り組むべき具体的なアクション\n2. 1か月後に到達できる状態のイメージ\n3. 私の現在のツール環境(' + (toolsList || '未選択') + ')で無理なく始められる方法\n4. つまずきやすいポイントとその回避策\n\n' +
-    '長文の詳細解説より、すぐ手を動かせるレベルの実践ガイドを最優先でお願いします。';
+    '具体的には以下4点を整理してほしいです:\n1. 最初の1週間で取り組むべき具体的なアクション（日別タスク表）\n2. 1か月後に到達できる状態のイメージ\n3. 私の現在のツール環境(' + (toolsList || '未選択') + ')で無理なく始められる方法\n4. つまずきやすいポイントとその回避策\n\n' +
+    '【出力ルール】\n・回答は印刷したときにA4で2ページ以内に収まる量でお願いします（紙派の私が読みやすいように）\n・上記の【その他・特記事項】に書いた内容は、最低1度は回答に組み込んでください\n・長文の詳細解説より、すぐ手を動かせるレベルの実践ガイドを最優先でお願いします\n・コピペで使える文面（DM・あいさつメッセージ等）があれば積極的に提供してください';
 }
 
 function getRecommendedAutos() {
@@ -385,7 +405,7 @@ function tplStep2() {
 }
 
 function tplStep3() {
-  const v = state.tools.length > 0 && state.pcUsage && state.opsFormat;
+  const v = state.tools.length > 0 && state.pcUsage && state.opsFormat && state.monthlyReservations && state.linePlan;
   let h = '<div class="card"><div class="step-label">STEP 03 / 04</div><div class="step-title">運用スタイル & 自動化候補</div><div class="step-desc">現在のツール環境とAIに任せたい運用スタイル、特に自動化したい作業を教えてください。</div>';
   h += '<div style="margin-bottom:32px"><label class="section-label">現在使っているツール</label><div class="field-sublabel">複数選択可</div><div class="option-grid">';
   for (const t of CURRENT_TOOLS) {
@@ -397,6 +417,18 @@ function tplStep3() {
   for (const p of PC_USAGE) {
     const a = state.pcUsage === p.id;
     h += '<button class="option-btn ' + (a ? 'active' : '') + '" onclick="setSingle(\'pcUsage\',\'' + p.id + '\')"><span>' + p.label + '</span></button>';
+  }
+  h += '</div></div>';
+  h += '<div style="margin-bottom:32px"><label class="section-label">月間予約数（おおよそ）</label><div class="field-sublabel">AIへの提案を現実的な規模に合わせるため</div><div class="option-grid">';
+  for (const m of MONTHLY_RESERVATIONS) {
+    const a = state.monthlyReservations === m.id;
+    h += '<button class="option-btn ' + (a ? 'active' : '') + '" onclick="setSingle(\'monthlyReservations\',\'' + m.id + '\')"><span>' + m.label + '</span></button>';
+  }
+  h += '</div></div>';
+  h += '<div style="margin-bottom:32px"><label class="section-label">LINE公式アカウントのプラン</label><div class="field-sublabel">配信通数の上限把握用（自動応答・リマインダー設計に必須）</div><div class="radio-stack">';
+  for (const lp of LINE_PLANS) {
+    const a = state.linePlan === lp.id;
+    h += '<button class="radio-option ' + (a ? 'active' : '') + '" onclick="setSingle(\'linePlan\',\'' + lp.id + '\')"><div class="radio-circle"></div><div class="radio-content"><div class="radio-label">' + lp.label + '</div></div></button>';
   }
   h += '</div></div>';
   h += '<div style="margin-bottom:32px"><label class="section-label">希望する運用スタイル</label><div class="radio-stack">';
@@ -424,8 +456,15 @@ function tplResult() {
   top3.forEach((t, i) => { h += '<div class="podium-card rank' + (i+1) + '"><div class="podium-rank">第' + (i+1) + '位 ' + medals[i] + '</div><div class="podium-icon">' + t.icon + '</div><div class="podium-name">' + t.name + '</div><div class="podium-score">' + t.score + '<span class="podium-score-unit">pt</span></div></div>'; });
   h += '</div>';
   h += '<div class="result-section-h">全カテゴリ スコア比較</div><div class="chart">';
-  const colors = ['#1c1917','#44403c','#57534e','#78716c','#a8a29e','#a8a29e','#a8a29e','#a8a29e','#a8a29e'];
-  ranking.forEach((r, i) => { const w = (r.score / max) * 100; h += '<div class="bar-row"><div class="bar-name">' + r.name + '</div><div class="bar-track"><div class="bar-fill" style="width:' + w + '%;background:' + colors[i] + '"></div><div class="bar-value">' + r.score + '</div></div></div>'; });
+  const colors = ['#1c1917','#44403c','#57534e','#78716c','#a8a29e','#bcb8b1','#cdc8c1','#d6d3d1','#e7e5e4'];
+  ranking.forEach((r, i) => {
+    const w = (r.score / max) * 100;
+    const inside = w >= 22;
+    const valHtml = inside
+      ? '<div class="bar-value inside">' + r.score + '</div>'
+      : '<div class="bar-value outside" style="--bar-w:' + w + '%">' + r.score + '</div>';
+    h += '<div class="bar-row"><div class="bar-name">' + r.name + '</div><div class="bar-track"><div class="bar-fill" style="width:' + w + '%;background:' + colors[i] + '"></div>' + valHtml + '</div></div>';
+  });
   h += '</div>';
   if (top1 && top1.score > 0) {
     const fl = (FREQUENCY_OPTIONS.find(f => f.value === top1.data.frequency) || {}).label || '';
